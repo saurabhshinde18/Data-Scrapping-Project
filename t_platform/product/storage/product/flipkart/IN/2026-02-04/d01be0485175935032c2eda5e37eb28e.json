@@ -1,0 +1,17 @@
+{
+    "platform": "flipkart",
+    "country": "IN",
+    "source_url": "https://dl.flipkart.com/s/d5bUMluuuN",
+    "product": {
+        "title": "Apple iPhone 16 (Black, 128 GB)",
+        "price": "64900",
+        "original_price": null,
+        "discount": null,
+        "bank_offers": [
+            "No Cost EMI",
+            "Bank Offer"
+        ],
+        "availability": "In Stock"
+    },
+    "scraped_at": "2026-02-04T08:33:33.338862"
+}

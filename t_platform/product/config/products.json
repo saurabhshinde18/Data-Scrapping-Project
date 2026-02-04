@@ -1,0 +1,43 @@
+{
+    "schedule": {
+        "interval_minutes": 5
+    },
+    "products": [
+        {
+            "id": "amazon-shortlink-1",
+            "url": "https://amzn.in/d/08Zi8IY0",
+            "platform": "amazon",
+            "country": "IN",
+            "enabled": true,
+            "refresh_minutes": 10,
+            "last_fetched_at": "2026-02-03T09:58:30.676688"
+        },
+        {
+            "id": "amazon-beauty-cream",
+            "url": "https://www.amazon.in/-/mr/dp/B01CCGW4OE",
+            "platform": "amazon",
+            "country": "IN",
+            "enabled": true,
+            "refresh_minutes": 30,
+            "last_fetched_at": "2026-02-03T09:58:32.100801"
+        },
+        {
+            "id": "flipkart-smartphone",
+            "url": "https://dl.flipkart.com/s/d204cQuuuN",
+            "platform": "flipkart",
+            "country": "IN",
+            "enabled": true,
+            "refresh_minutes": 15,
+            "last_fetched_at": "2026-02-03T09:58:33.230152"
+        },
+        {
+            "id": "reliance-laptop",
+            "url": "https://www.reliancedigital.in/product/hp-15s-15s-fd0489tu-standard-laptop-13th-generation-intel-core-i3-1315u8-gb512-gb-ssdintel-integrated-socwindows-11-homemsoffice-home-2024-1-year-m365-basicfull-hd-3962-cm-156-inch-natural-silver-maw6wc-9210147?internal_source=search_results",
+            "platform": "reliance",
+            "country": "IN",
+            "enabled": true,
+            "refresh_minutes": 20,
+            "last_fetched_at": "2026-02-03T09:58:33.671052"
+        }
+    ]
+}

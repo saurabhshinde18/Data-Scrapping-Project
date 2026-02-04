@@ -1,0 +1,17 @@
+{
+    "platform": "flipkart",
+    "country": "IN",
+    "source_url": "https://dl.flipkart.com/dl/samsung-galaxy-s25-edge-5g-titanium-silver-256-gb/p/itm58d92f4e3af14?pid=MOBHBXJHADAZRFQJ&lid=LSTMOBHBXJHADAZRFQJCR2VWY&hl_lid=&marketplace=FLIPKART&fm=eyJ3dHAiOiJhZHZlcnRpc2VtZW50IiwicHJwdCI6InBwIiwibWlkIjoicGxhL3AycHNpbWlsYXIifQ==&_refId=&_appId=CL",
+    "product": {
+        "title": "Samsung Galaxy S25 Edge 5G (Titanium Silver, 256 GB)",
+        "price": "89999",
+        "original_price": null,
+        "discount": null,
+        "bank_offers": [
+            "Bank Offer",
+            "No Cost EMI"
+        ],
+        "availability": "In Stock"
+    },
+    "scraped_at": "2026-02-04T08:34:30.853695"
+}

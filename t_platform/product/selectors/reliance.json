@@ -1,0 +1,8 @@
+{
+  "title": "h1.product-name, h1.pdp__title, .product-title, .pdp__productName",
+  "price": "span.pdp__offerPrice, .product-marked-details span.product-marked-price, li.pdp__priceSection__priceListText span, .pdp__priceSection span",
+  "original_price": "span.pdp__mrp, .pdp__priceSection__priceListText .pdp__priceSection__priceListTextOldPrice, .product-original-price",
+  "discount": "span.pdp__savings, .product-marked-details span.product-price-discount, .pdp__discount",
+  "bank_offers": ".pdp__offers__item, .offer-container .offer-card, .pdp__bank-offers-container, .bank-offer-container",
+  "availability": "span.pdp__qty__button, .pdp__deliverySection, .product-availability"
+}

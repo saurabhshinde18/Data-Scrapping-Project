@@ -1,0 +1,19 @@
+{
+    "platform": "flipkart",
+    "country": "IN",
+    "source_url": "https://dl.flipkart.com/s/dk7cDsuuuN",
+    "product": {
+        "title": "Apple iPhone 16 (White, 128 GB)",
+        "price": "\u20b964,900",
+        "original_price": "\u20b969,900",
+        "discount": "7% off",
+        "bank_offers": [
+            "Bank Offer5% cashback on Axis Bank Flipkart Debit Card up to ?750 per monthT&C",
+            "Bank Offer5% cashback on Flipkart Axis Bank Credit Card upto \u20b94,000 per statement quarterT&C",
+            "Bank Offer5% cashback on Flipkart SBI Credit Card upto \u20b94,000 per calendar quarterT&C",
+            "Special PriceGet extra \u20b95000 offT&C"
+        ],
+        "availability": "Secure delivery by 7 Feb, Saturday"
+    },
+    "scraped_at": "2026-02-04T04:17:49.024490"
+}

@@ -1,0 +1,8 @@
+{
+  "title": "#productTitle, span#productTitle, h1#title span",
+  "price": "#corePriceDisplay_desktop_feature_div .a-price-whole, span.a-price-whole, #priceblock_ourprice, #priceblock_dealprice",
+  "original_price": ".a-text-price span.a-offscreen, #priceblock_ourprice, span.priceBlockStrikePriceString",
+  "discount": ".savingsPercentage, #dealprice_savings .priceBlockSavingsString, span.a-color-price",
+  "bank_offers": "#itembox-InstantBankDiscount .a-truncate-full, #poToggleButton span, div[data-feature-name='bankOffers'] li",
+  "availability": "#availability span, #outOfStock span"
+}
