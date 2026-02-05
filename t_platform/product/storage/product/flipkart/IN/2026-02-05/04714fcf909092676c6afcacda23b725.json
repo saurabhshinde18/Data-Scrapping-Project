@@ -1,0 +1,14 @@
+{
+    "platform": "flipkart",
+    "country": "IN",
+    "source_url": "https://dl.flipkart.com/s/XxrZh_NNNN",
+    "product": {
+        "title": "Bot Protection Detected",
+        "price": null,
+        "original_price": null,
+        "discount": "Bot protection active",
+        "bank_offers": [],
+        "availability": "Blocked by bot protection"
+    },
+    "scraped_at": "2026-02-05T08:01:24.822162"
+}

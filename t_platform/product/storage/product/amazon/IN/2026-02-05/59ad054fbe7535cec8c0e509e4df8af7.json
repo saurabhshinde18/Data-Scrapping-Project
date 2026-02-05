@@ -1,0 +1,17 @@
+{
+    "platform": "Amazon",
+    "country": "IN",
+    "source_url": "https://dl.flipkart.com/s/FkTYANuuuN",
+    "product": {
+        "title": "Apple iPhone 16 (Pink, 128 GB)",
+        "price": "64900",
+        "original_price": null,
+        "discount": "n",
+        "bank_offers": [
+            "Bank Offer",
+            "No Cost EMI"
+        ],
+        "availability": "In Stock"
+    },
+    "scraped_at": "2026-02-05T07:57:11.011126"
+}

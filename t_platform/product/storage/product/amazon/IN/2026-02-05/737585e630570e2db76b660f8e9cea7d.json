@@ -1,0 +1,16 @@
+{
+    "platform": "Amazon",
+    "country": "IN",
+    "source_url": "https://dl.flipkart.com/s/FlYcM7uuuN",
+    "product": {
+        "title": "Ant Esports mk 1300 Wired USB Tenkeyless Gaming Keyboard Compatible with Desktop",
+        "price": "140",
+        "original_price": null,
+        "discount": "95% off",
+        "bank_offers": [
+            "Bank Offer"
+        ],
+        "availability": "In Stock"
+    },
+    "scraped_at": "2026-02-05T08:44:05.942528"
+}

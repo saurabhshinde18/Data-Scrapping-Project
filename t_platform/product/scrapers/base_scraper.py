@@ -191,6 +191,59 @@ class BaseScraper:
         cleaned = str(text).replace("₹", "").replace("â¹", "").replace("$", "").replace(",", "").strip()
         return cleaned
 
+    
+    def _parse_number(self, value):
+        if value is None:
+            return None
+        cleaned = re.sub(r"[^0-9.]", "", str(value))
+        if not cleaned:
+            return None
+        try:
+            return float(cleaned)
+        except ValueError:
+            return None
+
+    def _compute_discount_percent(self, price, original_price):
+        price_num = self._parse_number(price)
+        original_num = self._parse_number(original_price)
+        if price_num is None or original_num is None:
+            return None
+        if original_num <= 0 or price_num < 0 or price_num > original_num:
+            return None
+        percent = round(((original_num - price_num) / original_num) * 100)
+        if percent <= 0:
+            return None
+        return int(percent)
+
+    def _normalize_discount(self, discount, price, original_price):
+        if discount is None:
+            discount_text = ""
+        else:
+            discount_text = str(discount).strip()
+
+        computed = self._compute_discount_percent(price, original_price)
+
+        if not discount_text:
+            return f"{computed}% off" if computed is not None else None
+
+        lowered = discount_text.lower()
+        if any(key in lowered for key in ["bot", "blocked", "protection", "site"]):
+            return discount
+
+        if "%" in discount_text or "off" in lowered:
+            return discount_text
+
+        if computed is not None:
+            return f"{computed}% off"
+
+        if re.fullmatch(r"\d+(\.\d+)?", discount_text):
+            return f"{discount_text}% off"
+
+        if len(discount_text) < 2:
+            return None
+
+        return discount_text
+
     def extract(self, soup, selector, field_name=None):
         if not selector:
             return None
@@ -461,6 +514,11 @@ class BaseScraper:
         
         if not result["availability"]:
             result["availability"] = self.extract(soup, self.selectors.get("availability"), "availability")
+
+        # Normalize discount to align with product page percentage when possible
+        result["discount"] = self._normalize_discount(
+            result["discount"], result["price"], result["original_price"]
+        )
         
         # Additional check for Flipkart: if all fields are still null, it's probably blocked
         if (self.platform == 'flipkart' and 
@@ -478,5 +536,4 @@ class BaseScraper:
                 "bank_offers": [],
                 "availability": "Protected by anti-bot measures"
             }
-        
         return result
