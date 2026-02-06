@@ -3,7 +3,7 @@ import Filters from "./components/Filters";
 import FetchForm from "./components/FetchForm";
 import HeroStats from "./components/HeroStats";
 import ProductGrid from "./components/ProductGrid";
-import { normalizeAvailability } from "./utils";
+import { COUNTRY_OPTIONS, normalizeAvailability } from "./utils";
 
 const API_BASE = "http://127.0.0.1:8000/product";
 const PLATFORM_OPTIONS = ["All", "Amazon", "flipkart", "Reliance"];
@@ -58,7 +58,6 @@ export default function App() {
   const [products, setProducts] = useState([]);
   const [platform, setPlatform] = useState("All");
   const [availability, setAvailability] = useState("All");
-  const [query, setQuery] = useState("");
   const [formPlatform, setFormPlatform] = useState("Amazon");
   const [formCountry, setFormCountry] = useState("India");
   const [searchQuery, setSearchQuery] = useState("");
@@ -66,200 +65,7 @@ export default function App() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
   const [searchSuccess, setSearchSuccess] = useState("");
-  const countryOptions = [
-    "Afghanistan",
-    "Albania",
-    "Algeria",
-    "Andorra",
-    "Angola",
-    "Antigua and Barbuda",
-    "Argentina",
-    "Armenia",
-    "Australia",
-    "Austria",
-    "Azerbaijan",
-    "Bahamas",
-    "Bahrain",
-    "Bangladesh",
-    "Barbados",
-    "Belarus",
-    "Belgium",
-    "Belize",
-    "Benin",
-    "Bhutan",
-    "Bolivia",
-    "Bosnia and Herzegovina",
-    "Botswana",
-    "Brazil",
-    "Brunei",
-    "Bulgaria",
-    "Burkina Faso",
-    "Burundi",
-    "Cabo Verde",
-    "Cambodia",
-    "Cameroon",
-    "Canada",
-    "Central African Republic",
-    "Chad",
-    "Chile",
-    "China",
-    "Colombia",
-    "Comoros",
-    "Congo",
-    "Costa Rica",
-    "Croatia",
-    "Cuba",
-    "Cyprus",
-    "Czech Republic",
-    "Democratic Republic of the Congo",
-    "Denmark",
-    "Djibouti",
-    "Dominica",
-    "Dominican Republic",
-    "Ecuador",
-    "Egypt",
-    "El Salvador",
-    "Equatorial Guinea",
-    "Eritrea",
-    "Estonia",
-    "Eswatini",
-    "Ethiopia",
-    "Fiji",
-    "Finland",
-    "France",
-    "Gabon",
-    "Gambia",
-    "Georgia",
-    "Germany",
-    "Ghana",
-    "Greece",
-    "Grenada",
-    "Guatemala",
-    "Guinea",
-    "Guinea-Bissau",
-    "Guyana",
-    "Haiti",
-    "Honduras",
-    "Hungary",
-    "Iceland",
-    "India",
-    "Indonesia",
-    "Iran",
-    "Iraq",
-    "Ireland",
-    "Israel",
-    "Italy",
-    "Jamaica",
-    "Japan",
-    "Jordan",
-    "Kazakhstan",
-    "Kenya",
-    "Kiribati",
-    "Kuwait",
-    "Kyrgyzstan",
-    "Laos",
-    "Latvia",
-    "Lebanon",
-    "Lesotho",
-    "Liberia",
-    "Libya",
-    "Liechtenstein",
-    "Lithuania",
-    "Luxembourg",
-    "Madagascar",
-    "Malawi",
-    "Malaysia",
-    "Maldives",
-    "Mali",
-    "Malta",
-    "Marshall Islands",
-    "Mauritania",
-    "Mauritius",
-    "Mexico",
-    "Micronesia",
-    "Moldova",
-    "Monaco",
-    "Mongolia",
-    "Montenegro",
-    "Morocco",
-    "Mozambique",
-    "Myanmar",
-    "Namibia",
-    "Nauru",
-    "Nepal",
-    "Netherlands",
-    "New Zealand",
-    "Nicaragua",
-    "Niger",
-    "Nigeria",
-    "North Korea",
-    "North Macedonia",
-    "Norway",
-    "Oman",
-    "Pakistan",
-    "Palau",
-    "Panama",
-    "Papua New Guinea",
-    "Paraguay",
-    "Peru",
-    "Philippines",
-    "Poland",
-    "Portugal",
-    "Qatar",
-    "Romania",
-    "Russia",
-    "Rwanda",
-    "Saint Kitts and Nevis",
-    "Saint Lucia",
-    "Saint Vincent and the Grenadines",
-    "Samoa",
-    "San Marino",
-    "Sao Tome and Principe",
-    "Saudi Arabia",
-    "Senegal",
-    "Serbia",
-    "Seychelles",
-    "Sierra Leone",
-    "Singapore",
-    "Slovakia",
-    "Slovenia",
-    "Solomon Islands",
-    "Somalia",
-    "South Africa",
-    "South Korea",
-    "South Sudan",
-    "Spain",
-    "Sri Lanka",
-    "Sudan",
-    "Suriname",
-    "Sweden",
-    "Switzerland",
-    "Syria",
-    "Tajikistan",
-    "Tanzania",
-    "Thailand",
-    "Timor-Leste",
-    "Togo",
-    "Tonga",
-    "Trinidad and Tobago",
-    "Tunisia",
-    "Turkey",
-    "Turkmenistan",
-    "Tuvalu",
-    "Uganda",
-    "Ukraine",
-    "United Arab Emirates",
-    "United Kingdom",
-    "United States",
-    "Uruguay",
-    "Uzbekistan",
-    "Vanuatu",
-    "Venezuela",
-    "Vietnam",
-    "Yemen",
-    "Zambia",
-    "Zimbabwe",
-  ];
+  const [exchangeRates, setExchangeRates] = useState(null);
   const [submitError, setSubmitError] = useState("");
 
   const filtered = useMemo(() => {
@@ -276,13 +82,10 @@ export default function App() {
         (availability === "Other"
           ? normalizedAvailability === "Other"
           : normalizedAvailability === availability);
-      const matchesQuery =
-        query.trim().length === 0 ||
-        item.product.title.toLowerCase().includes(query.toLowerCase());
 
-      return matchesPlatform && matchesAvailability && matchesQuery;
+      return matchesPlatform && matchesAvailability;
     });
-  }, [platform, availability, query, products]);
+  }, [platform, availability, products]);
 
   useEffect(() => {
     const load = async () => {
@@ -313,10 +116,25 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!countryOptions.includes(formCountry)) {
-      setFormCountry(countryOptions[0]);
+    if (!COUNTRY_OPTIONS.includes(formCountry)) {
+      setFormCountry(COUNTRY_OPTIONS[0]);
     }
-  }, [formCountry, countryOptions]);
+  }, [formCountry]);
+
+  useEffect(() => {
+    const loadRates = async () => {
+      try {
+        const { response, data } = await readJson(
+          "https://api.exchangerate.host/latest?base=INR"
+        );
+        if (!response.ok || !data?.rates) return;
+        setExchangeRates(data.rates);
+      } catch (error) {
+        // Ignore rate errors; fallback stays in INR.
+      }
+    };
+    loadRates();
+  }, []);
 
   const stats = useMemo(() => {
     const sourceItems =
@@ -436,18 +254,16 @@ export default function App() {
       <Filters
         platform={platform}
         availability={availability}
-        query={query}
         platformOptions={PLATFORM_OPTIONS}
         availabilityOptions={AVAILABILITY_OPTIONS}
         onPlatformChange={(event) => setPlatform(event.target.value)}
         onAvailabilityChange={(event) => setAvailability(event.target.value)}
-        onQueryChange={(event) => setQuery(event.target.value)}
       />
       <FetchForm
         formPlatform={formPlatform}
         formCountry={formCountry}
         searchQuery={searchQuery}
-        countryOptions={countryOptions}
+        countryOptions={COUNTRY_OPTIONS}
         isSearching={isSearching}
         searchError={searchError}
         searchSuccess={searchSuccess}
@@ -496,12 +312,20 @@ export default function App() {
           {searchResults.map((group) => (
             <div key={group.platform} className="platform-group">
               <h3>{group.platform}</h3>
-              <ProductGrid items={group.items} onDelete={handleDelete} />
+              <ProductGrid
+                items={group.items}
+                onDelete={handleDelete}
+                exchangeRates={exchangeRates}
+              />
             </div>
           ))}
         </section>
       ) : null}
-      <ProductGrid items={filtered} onDelete={handleDelete} />
+      <ProductGrid
+        items={filtered}
+        onDelete={handleDelete}
+        exchangeRates={exchangeRates}
+      />
     </div>
   );
 }

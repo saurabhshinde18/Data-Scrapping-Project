@@ -11,6 +11,7 @@ from t_platform.product.utils.file_writer import (
     get_available_countries,
     list_storage_files,
     read_storage_file,
+    save_search_results,
 )
 
 router = APIRouter()
@@ -90,6 +91,18 @@ def search_by_name(req: SearchRequest):
     )
     for item in items:
         item["scraped_at"] = datetime.utcnow().isoformat()
+    save_search_results(
+        platform,
+        req.country,
+        req.query,
+        {
+            "platform": req.platform,
+            "country": req.country,
+            "query": req.query,
+            "results": items,
+            "scraped_at": datetime.utcnow().isoformat(),
+        },
+    )
     display_platform = (
         "Amazon" if platform == "amazon" else "Reliance" if platform == "reliance" else platform
     )

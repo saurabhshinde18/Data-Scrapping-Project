@@ -5,6 +5,7 @@ from datetime import datetime
 
 BASE_PATH = Path("t_platform/product/storage/product")
 PRODUCTS_FILE = Path("t_platform/product/storage/products.json")
+SEARCH_BASE_PATH = Path("t_platform/product/storage/search")
 
 def save_to_file(platform: str, country: str, url: str, data: dict):
     date = datetime.utcnow().strftime("%Y-%m-%d")
@@ -14,6 +15,22 @@ def save_to_file(platform: str, country: str, url: str, data: dict):
     path.mkdir(parents=True, exist_ok=True)
 
     file_path = path / f"{product_id}.json"
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+    return str(file_path)
+
+
+def save_search_results(platform: str, country: str, query: str, data: dict):
+    date = datetime.utcnow().strftime("%Y-%m-%d")
+    query_hash = hashlib.md5(query.encode()).hexdigest()
+    timestamp = datetime.utcnow().strftime("%H%M%S")
+
+    path = SEARCH_BASE_PATH / platform / country / date
+    path.mkdir(parents=True, exist_ok=True)
+
+    file_path = path / f"{query_hash}_{timestamp}.json"
 
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)

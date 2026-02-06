@@ -31,15 +31,6 @@ export default function Filters({
           ))}
         </select>
       </label>
-
-      <label className="search">
-        Search Title
-        <input
-          value={query}
-          onChange={onQueryChange}
-          placeholder="Try iPhone, Portronics, Samsung..."
-        />
-      </label>
     </section>
   );
 }

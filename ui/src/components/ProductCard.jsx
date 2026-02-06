@@ -1,16 +1,18 @@
 import {
   formatDate,
   formatPrice,
+  getCurrencyCode,
   normalizeAvailability,
   normalizeDiscount,
 } from "../utils";
 
-export default function ProductCard({ item, onDelete }) {
+export default function ProductCard({ item, onDelete, exchangeRates }) {
   const normalizedAvailability = normalizeAvailability(
     item.product.availability
   );
   const availabilityClass =
     normalizedAvailability === "In stock" ? "InStock" : normalizedAvailability;
+  const currencyCode = getCurrencyCode(item.country);
 
   return (
     <article className="card">
@@ -38,12 +40,18 @@ export default function ProductCard({ item, onDelete }) {
       <div className="price-row">
         <div>
           <p className="label">Price</p>
-          <p className="price">{formatPrice(item.product.price)}</p>
+          <p className="price">
+            {formatPrice(item.product.price, currencyCode, exchangeRates)}
+          </p>
         </div>
         <div>
           <p className="label">MRP</p>
           <p className="price muted">
-            {formatPrice(item.product.original_price)}
+            {formatPrice(
+              item.product.original_price,
+              currencyCode,
+              exchangeRates
+            )}
           </p>
         </div>
         <div>

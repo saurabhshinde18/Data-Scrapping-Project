@@ -16,7 +16,7 @@ export default function FetchForm({
       <div>
         <h2>Fetch by Product Name</h2>
         <p>
-          Enter a product name, select platform and country, and weâ€™ll search
+          Enter a product name, select platform and country, and will   search
           and scrape top results.
         </p>
       </div>
