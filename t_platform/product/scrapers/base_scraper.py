@@ -73,7 +73,7 @@ class BaseScraper:
         # Try to get the page with retries
         for attempt in range(3):
             try:
-                response = session.get(self.url, headers=headers, timeout=15, allow_redirects=True)
+                response = session.get(self.url, headers=headers, timeout=8, allow_redirects=True)
                 
                 # Check for common blocking indicators
                 if response.status_code in [403, 429, 503]:
@@ -83,7 +83,7 @@ class BaseScraper:
                         # Try with different headers
                         alt_headers = headers.copy()
                         alt_headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
-                        response = session.get(self.url, headers=alt_headers, timeout=15, allow_redirects=True)
+                        response = session.get(self.url, headers=alt_headers, timeout=8, allow_redirects=True)
                 
                 response.raise_for_status()
                 
@@ -124,7 +124,7 @@ class BaseScraper:
                                 session.cookies.set('REQUEST_METHOD', 'GET', domain='.flipkart.com')
                                 alt_headers = headers.copy()
                                 alt_headers["Upgrade-Insecure-Requests"] = "1"
-                                response = session.get(self.url, headers=alt_headers, timeout=15, allow_redirects=True)
+                                response = session.get(self.url, headers=alt_headers, timeout=8, allow_redirects=True)
                                 content = response.content
                                 if 'gzip' in response.headers.get('content-encoding', '').lower():
                                     try:

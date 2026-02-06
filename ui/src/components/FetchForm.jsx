@@ -1,34 +1,26 @@
 export default function FetchForm({
-  formUrl,
   formPlatform,
   formCountry,
+  searchQuery,
   countryOptions,
-  isSubmitting,
-  submitError,
-  submitSuccess,
-  onUrlChange,
+  isSearching,
+  searchError,
+  searchSuccess,
   onPlatformChange,
   onCountryChange,
-  onSubmit,
+  onSearchQueryChange,
+  onSearch,
 }) {
   return (
     <section className="fetch">
       <div>
-        <h2>Fetch by Product Link</h2>
+        <h2>Fetch by Product Name</h2>
         <p>
-          Paste a product URL, select platform and country, and we’ll call the
-          backend scraper API.
+          Enter a product name, select platform and country, and weâ€™ll search
+          and scrape top results.
         </p>
       </div>
-      <form onSubmit={onSubmit} className="fetch-form">
-        <label>
-          Product Link
-          <input
-            value={formUrl}
-            onChange={onUrlChange}
-            placeholder="https://amzn.in/..."
-          />
-        </label>
+      <form onSubmit={(event) => event.preventDefault()} className="fetch-form">
         <label>
           Platform
           <select value={formPlatform} onChange={onPlatformChange}>
@@ -47,14 +39,22 @@ export default function FetchForm({
             ))}
           </select>
         </label>
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Fetching..." : "Fetch Product"}
+        <label>
+          Product Name
+          <input
+            value={searchQuery}
+            onChange={onSearchQueryChange}
+            placeholder="Search phones, laptops, headphones..."
+          />
+        </label>
+        <button type="button" onClick={onSearch} disabled={isSearching}>
+          {isSearching ? "Fetching..." : "Fetch Products"}
         </button>
-        {submitError ? (
-          <p className="form-message error">{submitError}</p>
+        {searchError ? (
+          <p className="form-message error">{searchError}</p>
         ) : null}
-        {submitSuccess ? (
-          <p className="form-message success">{submitSuccess}</p>
+        {searchSuccess ? (
+          <p className="form-message success">{searchSuccess}</p>
         ) : null}
       </form>
     </section>

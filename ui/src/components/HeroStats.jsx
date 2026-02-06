@@ -18,10 +18,6 @@ export default function HeroStats({ stats }) {
           <p className="card-label">In Stock</p>
           <p className="card-value">{stats.inStock}</p>
         </div>
-        <div>
-          <p className="card-label">Blocked</p>
-          <p className="card-value">{stats.blocked}</p>
-        </div>
       </div>
     </header>
   );

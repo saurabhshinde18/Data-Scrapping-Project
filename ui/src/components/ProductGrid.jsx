@@ -5,7 +5,7 @@ export default function ProductGrid({ items, onDelete }) {
     <section className="grid">
       {items.map((item) => (
         <ProductCard
-          key={item.source_url}
+          key={`${item.source_url}-${item.scraped_at}`}
           item={item}
           onDelete={onDelete}
         />

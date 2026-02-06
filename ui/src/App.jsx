@@ -7,7 +7,7 @@ import { normalizeAvailability } from "./utils";
 
 const API_BASE = "http://127.0.0.1:8000/product";
 const PLATFORM_OPTIONS = ["All", "Amazon", "flipkart", "Reliance"];
-const AVAILABILITY_OPTIONS = ["All", "In stock", "Blocked", "Other"];
+const AVAILABILITY_OPTIONS = ["All", "In stock", "Other"];
 
 const readJson = async (url, options) => {
   const response = await fetch(url, options);
@@ -16,22 +16,256 @@ const readJson = async (url, options) => {
   return { response, data };
 };
 
+const isBotProtectionItem = (item) => {
+  const title = String(item?.product?.title || "").toLowerCase();
+  const availability = String(item?.product?.availability || "").toLowerCase();
+  const discount = String(item?.product?.discount || "").toLowerCase();
+  return (
+    title.includes("bot protection") ||
+    availability.includes("bot") ||
+    availability.includes("blocked") ||
+    availability.includes("protected") ||
+    discount.includes("bot protection") ||
+    discount.includes("site blocked")
+  );
+};
+
+const isEmptyProductItem = (item) => {
+  const product = item?.product || {};
+  const title = String(product.title || "").trim();
+  const price = String(product.price || "").trim();
+  const originalPrice = String(product.original_price || "").trim();
+  const discount = String(product.discount || "").trim();
+  const availability = String(product.availability || "").trim();
+  const bankOffers = Array.isArray(product.bank_offers)
+    ? product.bank_offers.filter(Boolean)
+    : [];
+
+  return (
+    !title &&
+    !price &&
+    !originalPrice &&
+    !discount &&
+    !availability &&
+    bankOffers.length === 0
+  );
+};
+
+const isSameEntry = (a, b) =>
+  a?.source_url === b?.source_url && a?.scraped_at === b?.scraped_at;
 
 export default function App() {
   const [products, setProducts] = useState([]);
   const [platform, setPlatform] = useState("All");
   const [availability, setAvailability] = useState("All");
   const [query, setQuery] = useState("");
-  const [formUrl, setFormUrl] = useState("");
   const [formPlatform, setFormPlatform] = useState("Amazon");
-  const [formCountry, setFormCountry] = useState("IN");
-  const [countryOptions, setCountryOptions] = useState(["IN"]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formCountry, setFormCountry] = useState("India");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [searchSuccess, setSearchSuccess] = useState("");
+  const countryOptions = [
+    "Afghanistan",
+    "Albania",
+    "Algeria",
+    "Andorra",
+    "Angola",
+    "Antigua and Barbuda",
+    "Argentina",
+    "Armenia",
+    "Australia",
+    "Austria",
+    "Azerbaijan",
+    "Bahamas",
+    "Bahrain",
+    "Bangladesh",
+    "Barbados",
+    "Belarus",
+    "Belgium",
+    "Belize",
+    "Benin",
+    "Bhutan",
+    "Bolivia",
+    "Bosnia and Herzegovina",
+    "Botswana",
+    "Brazil",
+    "Brunei",
+    "Bulgaria",
+    "Burkina Faso",
+    "Burundi",
+    "Cabo Verde",
+    "Cambodia",
+    "Cameroon",
+    "Canada",
+    "Central African Republic",
+    "Chad",
+    "Chile",
+    "China",
+    "Colombia",
+    "Comoros",
+    "Congo",
+    "Costa Rica",
+    "Croatia",
+    "Cuba",
+    "Cyprus",
+    "Czech Republic",
+    "Democratic Republic of the Congo",
+    "Denmark",
+    "Djibouti",
+    "Dominica",
+    "Dominican Republic",
+    "Ecuador",
+    "Egypt",
+    "El Salvador",
+    "Equatorial Guinea",
+    "Eritrea",
+    "Estonia",
+    "Eswatini",
+    "Ethiopia",
+    "Fiji",
+    "Finland",
+    "France",
+    "Gabon",
+    "Gambia",
+    "Georgia",
+    "Germany",
+    "Ghana",
+    "Greece",
+    "Grenada",
+    "Guatemala",
+    "Guinea",
+    "Guinea-Bissau",
+    "Guyana",
+    "Haiti",
+    "Honduras",
+    "Hungary",
+    "Iceland",
+    "India",
+    "Indonesia",
+    "Iran",
+    "Iraq",
+    "Ireland",
+    "Israel",
+    "Italy",
+    "Jamaica",
+    "Japan",
+    "Jordan",
+    "Kazakhstan",
+    "Kenya",
+    "Kiribati",
+    "Kuwait",
+    "Kyrgyzstan",
+    "Laos",
+    "Latvia",
+    "Lebanon",
+    "Lesotho",
+    "Liberia",
+    "Libya",
+    "Liechtenstein",
+    "Lithuania",
+    "Luxembourg",
+    "Madagascar",
+    "Malawi",
+    "Malaysia",
+    "Maldives",
+    "Mali",
+    "Malta",
+    "Marshall Islands",
+    "Mauritania",
+    "Mauritius",
+    "Mexico",
+    "Micronesia",
+    "Moldova",
+    "Monaco",
+    "Mongolia",
+    "Montenegro",
+    "Morocco",
+    "Mozambique",
+    "Myanmar",
+    "Namibia",
+    "Nauru",
+    "Nepal",
+    "Netherlands",
+    "New Zealand",
+    "Nicaragua",
+    "Niger",
+    "Nigeria",
+    "North Korea",
+    "North Macedonia",
+    "Norway",
+    "Oman",
+    "Pakistan",
+    "Palau",
+    "Panama",
+    "Papua New Guinea",
+    "Paraguay",
+    "Peru",
+    "Philippines",
+    "Poland",
+    "Portugal",
+    "Qatar",
+    "Romania",
+    "Russia",
+    "Rwanda",
+    "Saint Kitts and Nevis",
+    "Saint Lucia",
+    "Saint Vincent and the Grenadines",
+    "Samoa",
+    "San Marino",
+    "Sao Tome and Principe",
+    "Saudi Arabia",
+    "Senegal",
+    "Serbia",
+    "Seychelles",
+    "Sierra Leone",
+    "Singapore",
+    "Slovakia",
+    "Slovenia",
+    "Solomon Islands",
+    "Somalia",
+    "South Africa",
+    "South Korea",
+    "South Sudan",
+    "Spain",
+    "Sri Lanka",
+    "Sudan",
+    "Suriname",
+    "Sweden",
+    "Switzerland",
+    "Syria",
+    "Tajikistan",
+    "Tanzania",
+    "Thailand",
+    "Timor-Leste",
+    "Togo",
+    "Tonga",
+    "Trinidad and Tobago",
+    "Tunisia",
+    "Turkey",
+    "Turkmenistan",
+    "Tuvalu",
+    "Uganda",
+    "Ukraine",
+    "United Arab Emirates",
+    "United Kingdom",
+    "United States",
+    "Uruguay",
+    "Uzbekistan",
+    "Vanuatu",
+    "Venezuela",
+    "Vietnam",
+    "Yemen",
+    "Zambia",
+    "Zimbabwe",
+  ];
   const [submitError, setSubmitError] = useState("");
-  const [submitSuccess, setSubmitSuccess] = useState("");
 
   const filtered = useMemo(() => {
     return products.filter((item) => {
+      if (isBotProtectionItem(item)) return false;
+      if (isEmptyProductItem(item)) return false;
       const matchesPlatform =
         platform === "All" || item.platform === platform;
       const normalizedAvailability = normalizeAvailability(
@@ -79,58 +313,47 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const loadCountries = async () => {
-      try {
-        const { response, data } = await readJson(`${API_BASE}/countries`);
-        if (!response.ok) return;
-        if (Array.isArray(data) && data.length > 0) {
-          setCountryOptions(data);
-          if (!data.includes(formCountry)) {
-            setFormCountry(data[0]);
-          }
-        }
-      } catch (error) {
-        // Keep default options if API is unavailable.
-      }
-    };
-    loadCountries();
-  }, [formCountry]);
+    if (!countryOptions.includes(formCountry)) {
+      setFormCountry(countryOptions[0]);
+    }
+  }, [formCountry, countryOptions]);
 
   const stats = useMemo(() => {
-    const total = products.length;
-    const blocked = products.filter((item) =>
-      String(item.product.availability || "")
-        .toLowerCase()
-        .includes("blocked")
-    ).length;
-    const inStock = products.filter((item) =>
+    const sourceItems =
+      searchResults.length > 0
+        ? searchResults.flatMap((group) => group.items)
+        : filtered;
+
+    const total = sourceItems.length;
+    const inStock = sourceItems.filter((item) =>
       String(item.product.availability || "")
         .toLowerCase()
         .includes("in stock")
     ).length;
 
-    return { total, blocked, inStock };
-  }, [products]);
+    return { total, inStock };
+  }, [searchResults, filtered]);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setSubmitError("");
-    setSubmitSuccess("");
+  const handleSearch = async () => {
+    setSearchError("");
+    setSearchSuccess("");
+    setSearchResults([]);
 
-    if (!formUrl.trim()) {
-      setSubmitError("Please enter a product link.");
+    if (!searchQuery.trim()) {
+      setSearchError("Please enter a product name to search.");
       return;
     }
 
-    setIsSubmitting(true);
+    setIsSearching(true);
     try {
-      const { response, data } = await readJson(`${API_BASE}/scrape`, {
+      const { response, data } = await readJson(`${API_BASE}/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          url: formUrl.trim(),
+          query: searchQuery.trim(),
           platform: formPlatform,
           country: formCountry,
+          limit: 9,
         }),
       });
 
@@ -142,25 +365,50 @@ export default function App() {
         throw new Error(message);
       }
 
-      if (!data || !data.product) {
+      if (!data || !Array.isArray(data.results)) {
         throw new Error("API returned an unexpected response.");
       }
 
-      setProducts((prev) => [data, ...prev]);
-      setSubmitSuccess("Product scraped and added.");
-      setFormUrl("");
+      const cleaned = data.results
+        .map((group) => ({
+          ...group,
+          items: group.items.filter(
+            (item) => !isBotProtectionItem(item) && !isEmptyProductItem(item)
+          ),
+        }))
+        .filter((group) => group.items.length > 0);
+
+      if (cleaned.length === 0) {
+        setSearchResults([]);
+        setSearchError("No results found.");
+        return;
+      }
+
+      setSearchResults(cleaned);
+      setSearchSuccess("Fetch completed.");
     } catch (error) {
-      setSubmitError(
+      setSearchError(
         error instanceof Error
           ? error.message
           : "Something went wrong. Please try again."
       );
     } finally {
-      setIsSubmitting(false);
+      setIsSearching(false);
     }
   };
 
+
   const handleDelete = async (item) => {
+    setSubmitError("");
+    const snapshot = products;
+    const searchSnapshot = searchResults;
+    setProducts((prev) => prev.filter((entry) => !isSameEntry(entry, item)));
+    setSearchResults((prev) =>
+      prev.map((group) => ({
+        ...group,
+        items: group.items.filter((entry) => !isSameEntry(entry, item)),
+      }))
+    );
     try {
       const { response } = await readJson(`${API_BASE}/delete`, {
         method: "POST",
@@ -175,11 +423,10 @@ export default function App() {
       if (!response.ok) {
         throw new Error("Delete failed");
       }
-      setProducts((prev) =>
-        prev.filter((entry) => entry.source_url !== item.source_url)
-      );
     } catch (error) {
       setSubmitError("Unable to delete from server.");
+      setProducts(snapshot);
+      setSearchResults(searchSnapshot);
     }
   };
 
@@ -197,18 +444,63 @@ export default function App() {
         onQueryChange={(event) => setQuery(event.target.value)}
       />
       <FetchForm
-        formUrl={formUrl}
         formPlatform={formPlatform}
         formCountry={formCountry}
+        searchQuery={searchQuery}
         countryOptions={countryOptions}
-        isSubmitting={isSubmitting}
-        submitError={submitError}
-        submitSuccess={submitSuccess}
-        onUrlChange={(event) => setFormUrl(event.target.value)}
+        isSearching={isSearching}
+        searchError={searchError}
+        searchSuccess={searchSuccess}
         onPlatformChange={(event) => setFormPlatform(event.target.value)}
         onCountryChange={(event) => setFormCountry(event.target.value)}
-        onSubmit={handleSubmit}
+        onSearchQueryChange={(event) => setSearchQuery(event.target.value)}
+        onSearch={handleSearch}
       />
+      {isSearching ? (
+        <section className="search-results">
+          <h2>Search Results</h2>
+          <div className="platform-group">
+            <h3>{formPlatform}</h3>
+            <div className="grid">
+              {Array.from({ length: 10 }).map((_, index) => (
+                <div key={`skeleton-${index}`} className="card skeleton">
+                  <div className="card-top">
+                    <span className="badge skeleton-pill" />
+                    <span className="status skeleton-pill" />
+                  </div>
+                  <div className="skeleton-line title" />
+                  <div className="skeleton-line url" />
+                  <div className="price-row">
+                    <div className="skeleton-block" />
+                    <div className="skeleton-block" />
+                    <div className="skeleton-block" />
+                  </div>
+                  <div className="offers">
+                    <span className="pill skeleton-pill" />
+                    <span className="pill skeleton-pill" />
+                  </div>
+                  <div className="meta">
+                    <span className="skeleton-line meta-line" />
+                    <span className="skeleton-line meta-line" />
+                  </div>
+                  <div className="skeleton-button" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+      {searchResults.length > 0 ? (
+        <section className="search-results">
+          <h2>Search Results</h2>
+          {searchResults.map((group) => (
+            <div key={group.platform} className="platform-group">
+              <h3>{group.platform}</h3>
+              <ProductGrid items={group.items} onDelete={handleDelete} />
+            </div>
+          ))}
+        </section>
+      ) : null}
       <ProductGrid items={filtered} onDelete={handleDelete} />
     </div>
   );
