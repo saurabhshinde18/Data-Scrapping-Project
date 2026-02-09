@@ -35,7 +35,6 @@ export default function ProductCard({ item, onDelete, exchangeRates }) {
         </div>
       </div>
       <h2>{item.product.title}</h2>
-      <p className="url">{item.source_url}</p>
 
       <div className="price-row">
         <div>
@@ -63,15 +62,22 @@ export default function ProductCard({ item, onDelete, exchangeRates }) {
       </div>
 
       <div className="offers">
-        {item.product.bank_offers.length === 0 ? (
-          <p className="empty">No bank offers captured.</p>
-        ) : (
-          item.product.bank_offers.map((offer, index) => (
+        {(() => {
+          const offers = Array.isArray(item.product.bank_offers)
+            ? item.product.bank_offers.filter(Boolean)
+            : [];
+          const cleaned = offers.filter(
+            (offer) => !String(offer).toLowerCase().includes("see more")
+          );
+          if (cleaned.length === 0) {
+            return <p className="empty">No bank offers captured.</p>;
+          }
+          return cleaned.map((offer, index) => (
             <span key={`${item.source_url}-${index}`} className="pill">
               {offer}
             </span>
-          ))
-        )}
+          ));
+        })()}
       </div>
 
       <div className="meta">

@@ -2,6 +2,7 @@ import requests
 import json
 import re
 from bs4 import BeautifulSoup
+from urllib.parse import urljoin
 import soupsieve as sv
 
 HEADERS = {
@@ -165,6 +166,103 @@ class BaseScraper:
         # This shouldn't be reached, but just in case
         response.raise_for_status()
         return BeautifulSoup(response.text, "html.parser")
+
+    def _fetch_rendered_html(self, url: str) -> str:
+        try:
+            from playwright.sync_api import sync_playwright
+        except Exception as exc:
+            raise RuntimeError(
+                "Playwright is required for JS-rendered pages. Install with: "
+                "pip install playwright && playwright install chromium"
+            ) from exc
+
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            context = browser.new_context(
+                user_agent=(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/120.0.0.0 Safari/537.36"
+                ),
+                viewport={"width": 1366, "height": 768},
+            )
+            page = context.new_page()
+            page.goto(url, wait_until="networkidle", timeout=20000)
+            page.wait_for_timeout(1500)
+            html = page.content()
+            browser.close()
+            return html
+
+    def _extract_flipkart_offers_from_rendered(self, url: str):
+        try:
+            from playwright.sync_api import sync_playwright
+        except Exception as exc:
+            raise RuntimeError(
+                "Playwright is required for JS-rendered pages. Install with: "
+                "pip install playwright && playwright install chromium"
+            ) from exc
+
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            context = browser.new_context(
+                user_agent=(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/120.0.0.0 Safari/537.36"
+                ),
+                viewport={"width": 1366, "height": 768},
+            )
+            page = context.new_page()
+            page.goto(url, wait_until="networkidle", timeout=20000)
+            page.wait_for_timeout(1500)
+
+            # Try to expand offers if a "View All" or similar button exists
+            for text in ["View all offers", "View more offers", "All offers", "More offers"]:
+                try:
+                    locator = page.get_by_text(text, exact=False)
+                    if locator and locator.first.is_visible():
+                        locator.first.click(timeout=2000)
+                        page.wait_for_timeout(1000)
+                        break
+                except Exception:
+                    continue
+
+            html = page.content()
+            browser.close()
+
+        soup = BeautifulSoup(html, "html.parser")
+        offers = []
+        selectors = [
+            "li.PZiKxL",
+            "li._1XgU_H",
+            "div._1Ma8Ph",
+            "div._3xWV0q",
+            "div._2OTr__ ._3MaNcj",
+            "div._1K9EoO",
+            "div.offers span",
+        ]
+        for selector in selectors:
+            for el in soup.select(selector):
+                text = el.get_text(" ", strip=True)
+                if text:
+                    offers.append(text)
+        for el in soup.select("div.offers, div._2eGCtU, div._3TT44I"):
+            text = el.get_text(" ", strip=True)
+            if text:
+                offers.append(text)
+
+        cleaned = []
+        seen = set()
+        for offer in offers:
+            if not re.search(r"(bank|emi|cashback|card)", offer, re.IGNORECASE):
+                continue
+            if offer in seen:
+                continue
+            seen.add(offer)
+            cleaned.append(offer)
+
+        concise = [o for o in cleaned if len(o) <= 120]
+        return concise if concise else cleaned
 
     def extract_jsonld(self, soup):
         """Extract product data from JSON-LD schema"""
@@ -374,6 +472,24 @@ class BaseScraper:
                         return matches[0].replace(',', '')
         
         return None
+
+    def extract_original_price_from_scripts(self, soup):
+        """Extract original price (MRP/list price) information from script tags for Flipkart"""
+        scripts = soup.find_all('script')
+        for script in scripts:
+            if script.string and ('mrp' in script.string.lower() or 'price' in script.string.lower()):
+                original_patterns = [
+                    r'"mrp"\s*:\s*["\']?([0-9,]+)["\']?',
+                    r'"maximumRetailPrice"\s*:\s*["\']?([0-9,]+)["\']?',
+                    r'"listPrice"\s*:\s*["\']?([0-9,]+)["\']?',
+                    r'"originalPrice"\s*:\s*["\']?([0-9,]+)["\']?',
+                    r'"actual_price"\s*:\s*["\']?([0-9,]+)["\']?'
+                ]
+                for pattern in original_patterns:
+                    matches = re.findall(pattern, script.string)
+                    if matches:
+                        return matches[0].replace(',', '')
+        return None
     
     def extract_discount_from_scripts(self, soup):
         """Extract discount information from script tags for Flipkart"""
@@ -410,6 +526,12 @@ class BaseScraper:
                         # Also look for bank offer patterns
                         bank_matches = re.findall(r'"title"\s*:\s*"([^"]*(?:Bank|EMI|Cashback)[^"]*)"', script.string, re.IGNORECASE)
                         offers.extend(bank_matches)
+                        # Include descriptions when titles are missing or too generic
+                        if not offer_matches or not bank_matches:
+                            desc_matches = re.findall(r'"offerDescription"\s*:\s*"([^"]+)"', script.string)
+                            offers.extend(desc_matches)
+                            text_matches = re.findall(r'"offerText"\s*:\s*"([^"]+)"', script.string)
+                            offers.extend(text_matches)
             return list(set(offers)) if offers else []
         return []
 
@@ -502,6 +624,8 @@ class BaseScraper:
         
         if not result["original_price"]:
             result["original_price"] = self.extract(soup, self.selectors.get("original_price"), "original_price")
+            if not result["original_price"] and self.platform == "flipkart":
+                result["original_price"] = self.extract_original_price_from_scripts(soup)
         
         if not result["discount"]:
             result["discount"] = self.extract(soup, self.selectors.get("discount"), "discount")
@@ -511,6 +635,11 @@ class BaseScraper:
         
         if not result["bank_offers"]:
             result["bank_offers"] = self.extract_list(soup, self.selectors.get("bank_offers"))
+            if not result["bank_offers"] and self.platform == "flipkart":
+                try:
+                    result["bank_offers"] = self._extract_flipkart_offers_from_rendered(self.url)
+                except Exception:
+                    result["bank_offers"] = []
         
         if not result["availability"]:
             result["availability"] = self.extract(soup, self.selectors.get("availability"), "availability")

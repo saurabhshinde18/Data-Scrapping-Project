@@ -1,0 +1,152 @@
+{
+    "platform": "Amazon",
+    "country": "India",
+    "query": "laptops",
+    "results": [
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/Ienovo-ThinkPad-14-inch-Display-Condition/dp/B0GL276Y3P/ref=sr_1_13?dib=eyJ2IjoiMSJ9.WrzuCTuGQKrnFlG15kXDUl1F7HTXTQYBNy8UkJ_ecH_gBY0m-CDKw_D_elajYAArl__y4BQStvbtjh8BwYXbLbreqoknkMEX_j7QpC28A5DhSTV7RRlojz1QumK-41_Pwer24w0NN_fJn3KDceDphr1z1of8nfm8YOHMFWAONsWWaPx1j4DBa7nJmeyHZ31UkbEh4RZNE06dwwHyCj78Z1aU8m6-C-kXJfn8aj-ofBE.ECtsfmSkSbZkudCG-KYdIFT-pZQrw501QhHf53HcJ_k&dib_tag=se&keywords=laptops&qid=1770622047&sr=8-13",
+            "product": {
+                "title": "Ienovo ThinkPad L490 | InteI Core i5 8th Gen | 8GB RAM | 256GB SSD | 14-inch FHD Display | Win 10 pro | Good Condition Tested Laptop",
+                "price": "21599",
+                "original_price": "45995",
+                "discount": "-53%",
+                "bank_offers": [
+                    "Upto \u20b91,500.00 discount on select Credit Cards, Debit Cards"
+                ],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T07:27:35.117530"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/Neopticon-BrowseBook-Student-Celeron-Windows/dp/B0FC64RYH1/ref=sr_1_7?dib=eyJ2IjoiMSJ9.WrzuCTuGQKrnFlG15kXDUl1F7HTXTQYBNy8UkJ_ecH_gBY0m-CDKw_D_elajYAArl__y4BQStvbtjh8BwYXbLbreqoknkMEX_j7QpC28A5DhSTV7RRlojz1QumK-41_Pwer24w0NN_fJn3KDceDphr1z1of8nfm8YOHMFWAONsWWaPx1j4DBa7nJmeyHZ31UkbEh4RZNE06dwwHyCj78Z1aU8m6-C-kXJfn8aj-ofBE.ECtsfmSkSbZkudCG-KYdIFT-pZQrw501QhHf53HcJ_k&dib_tag=se&keywords=laptops&qid=1770622047&sr=8-7",
+            "product": {
+                "title": "BrowseBook 14.1\" FHD IPS Laptop | Best Student & Office Work Laptop | Celeron N4020 | 4GB RAM | 128GB SSD | Windows 11 | 38Wh | 1.3kg | Grey",
+                "price": "12990",
+                "original_price": "30000",
+                "discount": "-57%",
+                "bank_offers": [
+                    "See more"
+                ],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T07:27:35.117530"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/HP-Anti-Glare-Micro-Edge-Office24-fc0500AU/dp/B0FJYJ8LVY/ref=sr_1_3?dib=eyJ2IjoiMSJ9.WrzuCTuGQKrnFlG15kXDUl1F7HTXTQYBNy8UkJ_ecH_gBY0m-CDKw_D_elajYAArl__y4BQStvbtjh8BwYXbLbreqoknkMEX_j7QpC28A5DhSTV7RRlojz1QumK-41_Pwer24w0NN_fJn3KDceDphr1z1of8nfm8YOHMFWAONsWWaPx1j4DBa7nJmeyHZ31UkbEh4RZNE06dwwHyCj78Z1aU8m6-C-kXJfn8aj-ofBE.ECtsfmSkSbZkudCG-KYdIFT-pZQrw501QhHf53HcJ_k&dib_tag=se&keywords=laptops&qid=1770622047&sr=8-3",
+            "product": {
+                "title": "HP 15, AMD Ryzen 3 7320U (8GB DDR4, 512GB SSD) FHD, Anti-Glare, Micro-Edge, 15.6''/39.6cm, Win11, M365 Basic(1yr)* Office24, Silver, 1.59kg, fc0500AU, FHD Camera w/Privacy Shutter Laptop",
+                "price": "34990",
+                "original_price": "44783",
+                "discount": "-22%",
+                "bank_offers": [
+                    "See more"
+                ],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T07:27:35.117530"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/HP-Celeron-Display-DQ3149TU-Business/dp/B0FYYBXPPD/ref=sr_1_9?dib=eyJ2IjoiMSJ9.WrzuCTuGQKrnFlG15kXDUl1F7HTXTQYBNy8UkJ_ecH_gBY0m-CDKw_D_elajYAArl__y4BQStvbtjh8BwYXbLbreqoknkMEX_j7QpC28A5DhSTV7RRlojz1QumK-41_Pwer24w0NN_fJn3KDceDphr1z1of8nfm8YOHMFWAONsWWaPx1j4DBa7nJmeyHZ31UkbEh4RZNE06dwwHyCj78Z1aU8m6-C-kXJfn8aj-ofBE.ECtsfmSkSbZkudCG-KYdIFT-pZQrw501QhHf53HcJ_k&dib_tag=se&keywords=laptops&qid=1770622047&sr=8-9",
+            "product": {
+                "title": "HP 14s Intel Celeron Dual Core N4500 Laptop (8GB/512GB SSD/Win 11) 14.0\" HD Display, MSO 24, Black, 1.46kg, DQ3149TU Thin and Light Business Laptop",
+                "price": "28479",
+                "original_price": "30299",
+                "discount": "-6%",
+                "bank_offers": [
+                    "See more"
+                ],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T07:27:35.117530"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/HP-Consumer-i3-1315U-Anti-Glare-Micro-Edge/dp/B0FMYH3W73/ref=sr_1_8?dib=eyJ2IjoiMSJ9.WrzuCTuGQKrnFlG15kXDUl1F7HTXTQYBNy8UkJ_ecH_gBY0m-CDKw_D_elajYAArl__y4BQStvbtjh8BwYXbLbreqoknkMEX_j7QpC28A5DhSTV7RRlojz1QumK-41_Pwer24w0NN_fJn3KDceDphr1z1of8nfm8YOHMFWAONsWWaPx1j4DBa7nJmeyHZ31UkbEh4RZNE06dwwHyCj78Z1aU8m6-C-kXJfn8aj-ofBE.ECtsfmSkSbZkudCG-KYdIFT-pZQrw501QhHf53HcJ_k&dib_tag=se&keywords=laptops&qid=1770622047&sr=8-8",
+            "product": {
+                "title": "HP 15 Consumer Series Laptop, Intel Core i3-1315U (13th Gen) 12GB DDR4 RAM,512GB NVMe SSD/ 15.6'' FHD Anti-Glare, Micro-Edge, Win11, M365 Basic(1yr)* Office24, Silver,1.59kg, FHD Camera with Shutter",
+                "price": "40401",
+                "original_price": "53933",
+                "discount": "-25%",
+                "bank_offers": [
+                    "Upto \u20b91,500.00 discount on select Credit Cards, Debit Cards"
+                ],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T07:27:35.117530"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/Lenovo-V15-Lifetime-Validity-Warranty/dp/B0CL7CMTXS/ref=sr_1_4?dib=eyJ2IjoiMSJ9.WrzuCTuGQKrnFlG15kXDUl1F7HTXTQYBNy8UkJ_ecH_gBY0m-CDKw_D_elajYAArl__y4BQStvbtjh8BwYXbLbreqoknkMEX_j7QpC28A5DhSTV7RRlojz1QumK-41_Pwer24w0NN_fJn3KDceDphr1z1of8nfm8YOHMFWAONsWWaPx1j4DBa7nJmeyHZ31UkbEh4RZNE06dwwHyCj78Z1aU8m6-C-kXJfn8aj-ofBE.ECtsfmSkSbZkudCG-KYdIFT-pZQrw501QhHf53HcJ_k&dib_tag=se&keywords=laptops&qid=1770622047&sr=8-4",
+            "product": {
+                "title": "Lenovo V15 G4 AMD Athlon Silver 7120U Laptop 8GB LPDDR5 Ram, 512 GB SSD PCIe, Windows 11 Lifetime Validity,15.6\" FHD Screen, AMD Radeon 610M, Silver, 1 Year Brand Warranty",
+                "price": "31099",
+                "original_price": "38000",
+                "discount": "-18%",
+                "bank_offers": [
+                    "See more"
+                ],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T07:27:35.117530"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/Celeron-LPDDR4X-39-62cm-Windows-A325-45/dp/B0FF4QBNWM/ref=sr_1_5?dib=eyJ2IjoiMSJ9.WrzuCTuGQKrnFlG15kXDUl1F7HTXTQYBNy8UkJ_ecH_gBY0m-CDKw_D_elajYAArl__y4BQStvbtjh8BwYXbLbreqoknkMEX_j7QpC28A5DhSTV7RRlojz1QumK-41_Pwer24w0NN_fJn3KDceDphr1z1of8nfm8YOHMFWAONsWWaPx1j4DBa7nJmeyHZ31UkbEh4RZNE06dwwHyCj78Z1aU8m6-C-kXJfn8aj-ofBE.ECtsfmSkSbZkudCG-KYdIFT-pZQrw501QhHf53HcJ_k&dib_tag=se&keywords=laptops&qid=1770622047&sr=8-5",
+            "product": {
+                "title": "acer Aspire 3, Intel Core Celeron N4500, 12GB LPDDR4X RAM, 512GB SSD, HD, 15.6\"/39.62cm, Windows 11 Home, Pure Silver, 1.5KG, A325-45, Thin and Light Laptop",
+                "price": "31890",
+                "original_price": "35999",
+                "discount": "-11%",
+                "bank_offers": [
+                    "Upto \u20b91,500.00 discount on select Credit Cards, Debit Cards"
+                ],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T07:27:35.117530"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/HP-i5-1334U-Anti-Glare-Micro-Edge-fd0577TU/dp/B0F4R6H3NB/ref=sr_1_10?dib=eyJ2IjoiMSJ9.WrzuCTuGQKrnFlG15kXDUl1F7HTXTQYBNy8UkJ_ecH_gBY0m-CDKw_D_elajYAArl__y4BQStvbtjh8BwYXbLbreqoknkMEX_j7QpC28A5DhSTV7RRlojz1QumK-41_Pwer24w0NN_fJn3KDceDphr1z1of8nfm8YOHMFWAONsWWaPx1j4DBa7nJmeyHZ31UkbEh4RZNE06dwwHyCj78Z1aU8m6-C-kXJfn8aj-ofBE.ECtsfmSkSbZkudCG-KYdIFT-pZQrw501QhHf53HcJ_k&dib_tag=se&keywords=laptops&qid=1770622047&sr=8-10",
+            "product": {
+                "title": "HP 15, 13th Gen Intel Core i5-1334U, (16GB DDR4,512GB SSD) Anti-Glare, Micro-Edge, FHD, 15.6''/39.6cm, Win11, M365 Basic(1yr)* Office24, Silver, 1.59kg, fd0577TU, Iris Xe, FHD Camera w/Shutter Laptop",
+                "price": "54990",
+                "original_price": "70841",
+                "discount": "-22%",
+                "bank_offers": [
+                    "Upto \u20b91,649.70 discount on Amazon Pay ICICI Bank Credit Cards"
+                ],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T07:27:35.117530"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/ASUS-Vivobook-Radeon-Windows-E1404FA-NK3325WS/dp/B0DTYNRVRX/ref=sr_1_6?dib=eyJ2IjoiMSJ9.WrzuCTuGQKrnFlG15kXDUl1F7HTXTQYBNy8UkJ_ecH_gBY0m-CDKw_D_elajYAArl__y4BQStvbtjh8BwYXbLbreqoknkMEX_j7QpC28A5DhSTV7RRlojz1QumK-41_Pwer24w0NN_fJn3KDceDphr1z1of8nfm8YOHMFWAONsWWaPx1j4DBa7nJmeyHZ31UkbEh4RZNE06dwwHyCj78Z1aU8m6-C-kXJfn8aj-ofBE.ECtsfmSkSbZkudCG-KYdIFT-pZQrw501QhHf53HcJ_k&dib_tag=se&keywords=laptops&qid=1770622047&sr=8-6",
+            "product": {
+                "title": "ASUS Vivobook Go 14, AMD Ryzen 3 7320U, 8GB RAM, 512GB SSD, FHD 14\", Windows 11, Office Home 2024, Mixed Black, 1.38 kg, E1404FA-NK3325WS, AMD Radeon iGPU, M365 Basic (1Year)*, Thin & Light Laptop",
+                "price": "33880",
+                "original_price": "45999",
+                "discount": "-26%",
+                "bank_offers": [
+                    "See more"
+                ],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T07:27:35.117530"
+        }
+    ],
+    "scraped_at": "2026-02-09T07:27:35.117530"
+}

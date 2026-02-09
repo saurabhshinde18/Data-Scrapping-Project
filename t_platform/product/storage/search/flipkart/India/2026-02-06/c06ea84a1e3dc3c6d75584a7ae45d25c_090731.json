@@ -1,0 +1,152 @@
+{
+    "platform": "flipkart",
+    "country": "India",
+    "query": "laptops",
+    "results": [
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/acer-travellite-amd-ryzen-5-7430u-16-gb-512-gb-ssd-windows-11-home-tl04-41m-notebook/p/itm184f20732f225?pid=COMHGNUZ3DXYBCBB&lid=LSTCOMHGNUZ3DXYBCBBFZHQXG&marketplace=FLIPKART&q=laptops&store=6bo%2Fb5g&srno=s_1_3&otracker=search&fm=organic&iid=183a1608-e5db-4bb9-bafc-5be3eb1e01c8.COMHGNUZ3DXYBCBB.SEARCH&ppt=None&ppn=None&ssid=934w6l5q680000001770368846006&qH=c06ea84a1e3dc3c6",
+            "product": {
+                "title": "Acer TravelLite AMD Ryzen 5 7430U - (16 GB/512 GB SSD/Windows 11 Home) TL04-41M Notebook",
+                "price": "38990",
+                "original_price": "50000",
+                "discount": "22% off",
+                "bank_offers": [
+                    "Bank Offer"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-06T09:07:31.107139"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/lenovo-ideapad-pro-5-intel-core-ultra-9-285h-32-gb-1-tb-ssd-windows-11-home-14iah10-thin-light-laptop/p/itmd7d69c58f3bc7?pid=COMHEAQTBUKSCUZE&lid=LSTCOMHEAQTBUKSCUZELO7MJY&marketplace=FLIPKART&q=laptops&store=6bo%2Fb5g&srno=s_1_2&otracker=search&fm=organic&iid=en_l0J6sRQwYZABd9nyhphpjqi6NuhXeKZaLr_qSQTJIRgw05AqEdhmVs4cBHXyR0AkytKBrLhm3v9i8bx2x7Q3_IQEIsITtCzc4bHaOMTqL08%3D&ppt=None&ppn=None&ssid=934w6l5q680000001770368846006&qH=c06ea84a1e3dc3c6",
+            "product": {
+                "title": "Lenovo IdeaPad Pro 5 Intel Core Ultra 9 285H - (32 GB/1 TB SSD/Windows 11 Home) 14IAH10 Thin and Light Laptop",
+                "price": "109990",
+                "original_price": "167890",
+                "discount": "34% off",
+                "bank_offers": [
+                    "Bank Offer",
+                    "No Cost EMI"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-06T09:07:31.107139"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/hp-omnibook-5-previously-pavilion-intel-core-i5-13th-gen-1334u-16-gb-512-gb-ssd-windows-11-home-16-ba1123tu-thin-light-laptop/p/itm6647eb8e337a1?pid=COMHA9GUP3FPVRJ2&lid=LSTCOMHA9GUP3FPVRJ2SKNIPP&marketplace=FLIPKART&q=laptops&store=6bo%2Fb5g&srno=s_1_1&otracker=search&fm=organic&iid=en_l0J6sRQwYZABd9nyhphpjqi6NuhXeKZaLr_qSQTJIRgVcWzB3YOAOaIte3HNdXtfMmKBIU4OcolaHWsRMVjX1PUFjCTyOHoHZs-Z5_PS_w0%3D&ppt=None&ppn=None&ssid=934w6l5q680000001770368846006&qH=c06ea84a1e3dc3c6",
+            "product": {
+                "title": "HP OmniBook 5(Previously Pavilion) Intel Core i5 13th Gen 1334U - (16 GB/512 GB SSD/Windows 11 Home) 16-ba1123TU Thin and Light Laptop",
+                "price": "63990",
+                "original_price": "78778",
+                "discount": "19% off",
+                "bank_offers": [
+                    "Bank Offer",
+                    "No Cost EMI"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-06T09:07:31.107139"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/lenovo-loq-essential-intel-core-i7-12650hx-16-gb-512-gb-ssd-windows-11-home-6-graphics-nvidia-geforce-rtx-4050-15iax9e-gaming-laptop/p/itmd07e54ebaf097?pid=COMHGEQVUDH5RKJH&lid=LSTCOMHGEQVUDH5RKJH61KR61&marketplace=FLIPKART&q=laptops&store=6bo%2Fb5g&srno=s_1_6&otracker=search&fm=organic&iid=en_l0J6sRQwYZABd9nyhphpjqi6NuhXeKZaLr_qSQTJIRjawLffjslIc8uZYUdvnl8sLDD1NEfKbLQrP9PzDEtLaDRKtQQVWB8eNWYNLe7VuyQ%3D&ppt=None&ppn=None&ssid=934w6l5q680000001770368846006&qH=c06ea84a1e3dc3c6",
+            "product": {
+                "title": "Bot Protection Detected",
+                "price": null,
+                "original_price": null,
+                "discount": "Bot protection active",
+                "bank_offers": [],
+                "availability": "Blocked by bot protection"
+            },
+            "scraped_at": "2026-02-06T09:07:31.107139"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/acer-aspire-3-intel-celeron-dual-core-8-gb-512-gb-ssd-windows-11-home-a311-45-thin-light-laptop/p/itmad38595c5a902?pid=COMH7NCZY2QDJ5Z4&lid=LSTCOMH7NCZY2QDJ5Z4DVC9YB&marketplace=FLIPKART&q=laptops&store=6bo%2Fb5g&srno=s_1_5&otracker=search&fm=organic&iid=183a1608-e5db-4bb9-bafc-5be3eb1e01c8.COMH7NCZY2QDJ5Z4.SEARCH&ppt=None&ppn=None&ssid=934w6l5q680000001770368846006&qH=c06ea84a1e3dc3c6",
+            "product": {
+                "title": "Acer Aspire 3 Intel Celeron Dual Core - (8 GB/512 GB SSD/Windows 11 Home) A311-45 Thin and Light Laptop",
+                "price": "27899",
+                "original_price": "35999",
+                "discount": "23% off",
+                "bank_offers": [
+                    "Bank Offer"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-06T09:07:31.107139"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/lenovo-100e-chromebook-gen-4-mediatek-kompanio-520-4-gb-32-gb-emmc-storage-chrome-os-82w00004ha/p/itm1ae5f82096ad9?pid=COMHA9FK8YXVUUWA&lid=LSTCOMHA9FK8YXVUUWAAREQMZ&marketplace=FLIPKART&q=laptops&store=6bo%2Fb5g&srno=s_1_9&otracker=search&fm=organic&iid=183a1608-e5db-4bb9-bafc-5be3eb1e01c8.COMHA9FK8YXVUUWA.SEARCH&ppt=None&ppn=None&ssid=934w6l5q680000001770368846006&qH=c06ea84a1e3dc3c6",
+            "product": {
+                "title": "Lenovo 100e Chromebook Gen 4 MediaTek Kompanio 520 - (4 GB/32 GB EMMC Storage/Chrome OS) 82W00004HA Chromebook",
+                "price": "10999",
+                "original_price": "16298",
+                "discount": "33% off",
+                "bank_offers": [
+                    "Bank Offer",
+                    "No Cost EMI"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-06T09:07:31.107139"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/hp-15-intel-core-i3-13th-gen-1315u-16-gb-512-gb-ssd-windows-11-home-15-fd0668tu-thin-light-laptop/p/itm44ca89d3e5687?pid=COMHESS7YD5PMQZ3&lid=LSTCOMHESS7YD5PMQZ3LYF6YA&marketplace=FLIPKART&q=laptops&store=6bo%2Fb5g&srno=s_1_8&otracker=search&fm=organic&iid=183a1608-e5db-4bb9-bafc-5be3eb1e01c8.COMHESS7YD5PMQZ3.SEARCH&ppt=None&ppn=None&ssid=934w6l5q680000001770368846006&qH=c06ea84a1e3dc3c6",
+            "product": {
+                "title": "HP 15 Intel Core i3 13th Gen 1315U - (16 GB/512 GB SSD/Windows 11 Home) 15-fd0668TU Thin and Light Laptop",
+                "price": "44900",
+                "original_price": "56993",
+                "discount": "21% off",
+                "bank_offers": [
+                    "Bank Offer"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-06T09:07:31.107139"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/hp-intel-core-i7-13th-gen-13620h-16-gb-512-gb-ssd-windows-11-home-15-fr0046tu-thin-light-laptop/p/itmc255f42578e1e?pid=COMHDFUWWFF77NQC&lid=LSTCOMHDFUWWFF77NQCREKA4R&marketplace=FLIPKART&q=laptops&store=6bo%2Fb5g&srno=s_1_7&otracker=search&fm=organic&iid=183a1608-e5db-4bb9-bafc-5be3eb1e01c8.COMHDFUWWFF77NQC.SEARCH&ppt=None&ppn=None&ssid=934w6l5q680000001770368846006&qH=c06ea84a1e3dc3c6",
+            "product": {
+                "title": "HP Intel Core i7 13th Gen 13620H - (16 GB/512 GB SSD/Windows 11 Home) 15-fr0046TU Thin and Light Laptop",
+                "price": "69990",
+                "original_price": "77507",
+                "discount": "10% off",
+                "bank_offers": [
+                    "Bank Offer",
+                    "No Cost EMI"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-06T09:07:31.107139"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/asus-expertbook-p1-intel-core-i3-13th-gen-1315u-16-gb-512-gb-ssd-windows-11-home-p1403cva-s60938ws-thin-light-laptop/p/itm0af4b81838b5b?pid=COMH8Z2QAWCCUCSP&lid=LSTCOMH8Z2QAWCCUCSPPZPFKG&marketplace=FLIPKART&q=laptops&store=6bo%2Fb5g&spotlightTagId=default_TrendingId_6bo%2Fb5g&srno=s_1_4&otracker=search&fm=organic&iid=183a1608-e5db-4bb9-bafc-5be3eb1e01c8.COMH8Z2QAWCCUCSP.SEARCH&ppt=None&ppn=None&ssid=934w6l5q680000001770368846006&qH=c06ea84a1e3dc3c6",
+            "product": {
+                "title": "Bot Protection Detected",
+                "price": null,
+                "original_price": null,
+                "discount": "Bot protection active",
+                "bank_offers": [],
+                "availability": "Blocked by bot protection"
+            },
+            "scraped_at": "2026-02-06T09:07:31.107139"
+        }
+    ],
+    "scraped_at": "2026-02-06T09:07:31.107139"
+}

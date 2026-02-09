@@ -425,14 +425,15 @@ export const normalizeAvailability = (value) => {
 };
 
 export const normalizeDiscount = (value) => {
-  if (!value) return "—";
+  if (!value) return "???";
   const trimmed = String(value).trim();
-  if (!trimmed) return "—";
-  if (trimmed.includes("%") || trimmed.toLowerCase().includes("off")) {
-    return trimmed;
+  if (!trimmed) return "???";
+  const normalized = trimmed.replace(/up to\s*(\d)/i, "Up to $1");
+  if (normalized.includes("%") || normalized.toLowerCase().includes("off")) {
+    return normalized;
   }
-  if (/^\d+(\.\d+)?$/.test(trimmed)) {
-    return `${trimmed}%`;
+  if (/^\d+(\.\d+)?$/.test(normalized)) {
+    return `${normalized}%`;
   }
-  return trimmed;
+  return normalized;
 };

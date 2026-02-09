@@ -1,0 +1,158 @@
+{
+    "platform": "flipkart",
+    "country": "India",
+    "query": "iphone",
+    "results": [
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/apple-iphone-14-starlight-128-gb/p/itm3485a56f6e676?pid=MOBGHWFHABH3G73H&lid=LSTMOBGHWFHABH3G73HHJP0CG&marketplace=FLIPKART&q=iphone&store=tyy%2F4io&srno=s_1_4&otracker=search&fm=organic&iid=e52becb3-ffe9-4071-a6c5-21947f3c0a75.MOBGHWFHABH3G73H.SEARCH&ppt=None&ppn=None&ssid=uk2y4ieje80000001770621961320&qH=0b3f45b266a97d70",
+            "product": {
+                "title": "Apple iPhone 14 (Starlight, 128 GB)",
+                "price": "54900",
+                "original_price": "54900",
+                "discount": null,
+                "bank_offers": [
+                    "No Cost EMI",
+                    "Bank Offer"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-09T07:26:07.932936"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/apple-iphone-16-ultramarine-128-gb/p/itmcc210cae43fba?pid=MOBH4DQFYZT6EH2F&lid=LSTMOBH4DQFYZT6EH2FXM70WU&marketplace=FLIPKART&q=iphone&store=tyy%2F4io&srno=s_1_2&otracker=search&fm=organic&iid=e52becb3-ffe9-4071-a6c5-21947f3c0a75.MOBH4DQFYZT6EH2F.SEARCH&ppt=None&ppn=None&ssid=uk2y4ieje80000001770621961320&qH=0b3f45b266a97d70",
+            "product": {
+                "title": "Apple iPhone 16 (Ultramarine, 128 GB)",
+                "price": "69900",
+                "original_price": "69900",
+                "discount": null,
+                "bank_offers": [
+                    "No Cost EMI",
+                    "Bank Offer"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-09T07:26:07.932936"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/apple-iphone-16-pink-256-gb/p/itm0d8c695cded44?pid=MOBH4DQF28XAYM2S&lid=LSTMOBH4DQF28XAYM2S3JPA23&marketplace=FLIPKART&q=iphone&store=tyy%2F4io&srno=s_1_9&otracker=search&fm=organic&iid=e52becb3-ffe9-4071-a6c5-21947f3c0a75.MOBH4DQF28XAYM2S.SEARCH&ppt=None&ppn=None&ssid=uk2y4ieje80000001770621961320&qH=0b3f45b266a97d70",
+            "product": {
+                "title": "Apple iPhone 16 (Pink, 256 GB)",
+                "price": "79900",
+                "original_price": "79900",
+                "discount": null,
+                "bank_offers": [
+                    "No Cost EMI",
+                    "Bank Offer"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-09T07:26:07.932936"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/apple-iphone-13-starlight-128-gb/p/itmc9604f122ae7f?pid=MOBG6VF5ADKHKXFX&lid=LSTMOBG6VF5ADKHKXFX4LCPEV&marketplace=FLIPKART&q=iphone&store=tyy%2F4io&srno=s_1_8&otracker=search&fm=organic&iid=e52becb3-ffe9-4071-a6c5-21947f3c0a75.MOBG6VF5ADKHKXFX.SEARCH&ppt=None&ppn=None&ssid=uk2y4ieje80000001770621961320&qH=0b3f45b266a97d70",
+            "product": {
+                "title": "Bot Protection Detected",
+                "price": null,
+                "original_price": null,
+                "discount": "Bot protection active",
+                "bank_offers": [],
+                "availability": "Blocked by bot protection"
+            },
+            "scraped_at": "2026-02-09T07:26:07.932936"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/apple-iphone-17-lavender-256-gb/p/itmf37c8dffa4165?pid=MOBHFN6YKGBPYJZD&lid=LSTMOBHFN6YKGBPYJZDEZPBYP&marketplace=FLIPKART&q=iphone&store=tyy%2F4io&srno=s_1_6&otracker=search&fm=organic&iid=e52becb3-ffe9-4071-a6c5-21947f3c0a75.MOBHFN6YKGBPYJZD.SEARCH&ppt=None&ppn=None&ssid=uk2y4ieje80000001770621961320&qH=0b3f45b266a97d70",
+            "product": {
+                "title": "Apple iPhone 17 (Lavender, 256 GB)",
+                "price": "82900",
+                "original_price": "82900",
+                "discount": null,
+                "bank_offers": [
+                    "No Cost EMI",
+                    "Bank Offer"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-09T07:26:07.932936"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/apple-iphone-16-black-128-gb/p/itmb07d67f995271?pid=MOBH4DQFG8NKFRDY&lid=LSTMOBH4DQFG8NKFRDYNBDOZI&marketplace=FLIPKART&q=iphone&store=tyy%2F4io&spotlightTagId=default_BestsellerId_tyy%2F4io&srno=s_1_1&otracker=search&fm=organic&iid=e52becb3-ffe9-4071-a6c5-21947f3c0a75.MOBH4DQFG8NKFRDY.SEARCH&ppt=None&ppn=None&ssid=uk2y4ieje80000001770621961320&qH=0b3f45b266a97d70",
+            "product": {
+                "title": "Apple iPhone 16 (Black, 128 GB)",
+                "price": "69900",
+                "original_price": "69900",
+                "discount": null,
+                "bank_offers": [
+                    "No Cost EMI",
+                    "Bank Offer"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-09T07:26:07.932936"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/apple-iphone-16-white-128-gb/p/itm7c0281cd247be?pid=MOBH4DQF849HCG6G&lid=LSTMOBH4DQF849HCG6GXHBPXY&marketplace=FLIPKART&q=iphone&store=tyy%2F4io&srno=s_1_3&otracker=search&fm=organic&iid=e52becb3-ffe9-4071-a6c5-21947f3c0a75.MOBH4DQF849HCG6G.SEARCH&ppt=None&ppn=None&ssid=uk2y4ieje80000001770621961320&qH=0b3f45b266a97d70",
+            "product": {
+                "title": "Apple iPhone 16 (White, 128 GB)",
+                "price": "69900",
+                "original_price": "69900",
+                "discount": null,
+                "bank_offers": [
+                    "No Cost EMI",
+                    "Bank Offer"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-09T07:26:07.932936"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/apple-iphone-16-teal-128-gb/p/itmce4bb3f55cc2f?pid=MOBH4DQFSY9ETDUU&lid=LSTMOBH4DQFSY9ETDUU6JV9DJ&marketplace=FLIPKART&q=iphone&store=tyy%2F4io&spotlightTagId=default_BestsellerId_tyy%2F4io&srno=s_1_5&otracker=search&fm=organic&iid=e52becb3-ffe9-4071-a6c5-21947f3c0a75.MOBH4DQFSY9ETDUU.SEARCH&ppt=None&ppn=None&ssid=uk2y4ieje80000001770621961320&qH=0b3f45b266a97d70",
+            "product": {
+                "title": "Apple iPhone 16 (Teal, 128 GB)",
+                "price": "69900",
+                "original_price": "69900",
+                "discount": null,
+                "bank_offers": [
+                    "No Cost EMI",
+                    "Bank Offer"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-09T07:26:07.932936"
+        },
+        {
+            "platform": "flipkart",
+            "country": "India",
+            "source_url": "https://www.flipkart.com/apple-iphone-15-black-128-gb/p/itm6ac6485515ae4?pid=MOBGTAGPTB3VS24W&lid=LSTMOBGTAGPTB3VS24WCTBCFM&marketplace=FLIPKART&q=iphone&store=tyy%2F4io&srno=s_1_7&otracker=search&fm=organic&iid=e52becb3-ffe9-4071-a6c5-21947f3c0a75.MOBGTAGPTB3VS24W.SEARCH&ppt=None&ppn=None&ssid=uk2y4ieje80000001770621961320&qH=0b3f45b266a97d70",
+            "product": {
+                "title": "Apple iPhone 15 (Black, 128 GB)",
+                "price": "54900",
+                "original_price": "59900",
+                "discount": "8% off",
+                "bank_offers": [
+                    "No Cost EMI",
+                    "Bank Offer"
+                ],
+                "availability": "In Stock"
+            },
+            "scraped_at": "2026-02-09T07:26:07.932936"
+        }
+    ],
+    "scraped_at": "2026-02-09T07:26:07.932936"
+}
