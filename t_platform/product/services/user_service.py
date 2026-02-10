@@ -1,5 +1,5 @@
-from datetime import datetime
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+import json
 from typing import Optional
 
 import asyncpg
@@ -68,6 +68,28 @@ async def mark_password_reset_used(pool: asyncpg.Pool, reset_id: int) -> None:
             "UPDATE password_resets SET used_at = NOW() WHERE id = $1",
             reset_id,
         )
+
+
+async def record_search_usage(pool: asyncpg.Pool, user_id: int) -> None:
+    async with pool.acquire() as connection:
+        await connection.execute(
+            "INSERT INTO search_usage (user_id) VALUES ($1)",
+            user_id,
+        )
+
+
+async def count_searches_this_month(pool: asyncpg.Pool, user_id: int) -> int:
+    async with pool.acquire() as connection:
+        count = await connection.fetchval(
+            """
+            SELECT COUNT(*)
+            FROM search_usage
+            WHERE user_id = $1
+              AND created_at >= date_trunc('month', NOW())
+            """,
+            user_id,
+        )
+    return int(count or 0)
 
 
 async def create_user(
@@ -217,6 +239,7 @@ async def create_payment(
     razorpay_payment_id: str | None,
     raw: dict | None = None,
 ) -> None:
+    raw_payload = json.dumps(raw) if isinstance(raw, dict) else raw
     async with pool.acquire() as connection:
         await connection.execute(
             """
@@ -231,7 +254,7 @@ async def create_payment(
             currency,
             status,
             razorpay_payment_id,
-            raw,
+            raw_payload,
         )
 
 
@@ -266,11 +289,13 @@ async def list_users_with_subscription(pool: asyncpg.Pool) -> list[dict]:
             """
         )
     results = []
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     for row in rows:
         end_date = row.get("end_date")
         remaining_days = None
         if end_date:
+            if end_date.tzinfo is None:
+                end_date = end_date.replace(tzinfo=timezone.utc)
             remaining_days = max((end_date - now).days, 0)
         results.append(
             {
@@ -293,6 +318,41 @@ async def list_users_with_subscription(pool: asyncpg.Pool) -> list[dict]:
     return results
 
 
+async def get_user_registration_series(pool: asyncpg.Pool, days: int) -> list[dict]:
+    if days <= 0:
+        return []
+    now = datetime.now(timezone.utc)
+    start = now - timedelta(days=days - 1)
+    start_day = datetime(start.year, start.month, start.day, tzinfo=timezone.utc)
+
+    async with pool.acquire() as connection:
+        rows = await connection.fetch(
+            """
+            SELECT date_trunc('day', created_at) AS day, COUNT(*) AS total
+            FROM users
+            WHERE role = 'user'
+              AND created_at >= $1
+            GROUP BY day
+            ORDER BY day
+            """,
+            start_day,
+        )
+
+    totals = {}
+    for row in rows:
+        day = row.get("day")
+        if day and day.tzinfo is None:
+            day = day.replace(tzinfo=timezone.utc)
+        key = day.date().isoformat() if day else None
+        if key:
+            totals[key] = int(row.get("total") or 0)
+
+    series = []
+    for i in range(days):
+        day = start_day + timedelta(days=i)
+        key = day.date().isoformat()
+        series.append({"date": key, "count": totals.get(key, 0)})
+    return series
 async def admin_metrics(pool: asyncpg.Pool) -> dict:
     async with pool.acquire() as connection:
         total_users = await connection.fetchval(
@@ -306,9 +366,24 @@ async def admin_metrics(pool: asyncpg.Pool) -> dict:
               AND (end_date IS NULL OR end_date >= NOW())
             """
         )
-        revenue = await connection.fetchval(
+        captured_revenue = await connection.fetchval(
             "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'captured'"
         )
+        # Include active subscriptions that do not yet have a captured payment
+        # so dashboard revenue reflects current subscribed users as well.
+        pending_subscription_revenue = await connection.fetchval(
+            """
+            SELECT COALESCE(SUM(s.amount), 0)
+            FROM subscriptions s
+            LEFT JOIN payments p
+              ON p.subscription_id = s.id
+             AND p.status = 'captured'
+            WHERE s.status = 'active'
+              AND (s.end_date IS NULL OR s.end_date >= NOW())
+              AND p.id IS NULL
+            """
+        )
+        revenue = float(captured_revenue or 0) + float(pending_subscription_revenue or 0)
     return {
         "total_users": int(total_users or 0),
         "active_subscribers": int(active_subscribers or 0),

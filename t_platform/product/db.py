@@ -164,6 +164,21 @@ async def init_db(pool: asyncpg.Pool) -> None:
         )
         await connection.execute(
             """
+            CREATE TABLE IF NOT EXISTS search_usage (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            """
+        )
+        await connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_search_usage_user_time
+            ON search_usage(user_id, created_at);
+            """
+        )
+        await connection.execute(
+            """
             CREATE TABLE IF NOT EXISTS plan_pricing (
                 name TEXT PRIMARY KEY,
                 amount NUMERIC NOT NULL,
@@ -174,6 +189,23 @@ async def init_db(pool: asyncpg.Pool) -> None:
                 features JSONB,
                 updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             );
+            """
+        )
+        await connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS page_views (
+                id SERIAL PRIMARY KEY,
+                path TEXT,
+                visitor_id TEXT,
+                user_agent TEXT,
+                visited_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            """
+        )
+        await connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_page_views_visited_at
+            ON page_views(visited_at);
             """
         )
         await connection.execute(

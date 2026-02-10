@@ -164,6 +164,7 @@ async def subscription_status(
     subscription = await get_active_subscription(pool, user_id)
     if not subscription:
         return {"active": False}
+    start_date = subscription.get("start_date")
     end_date = subscription.get("end_date")
     remaining_days = None
     if end_date:
@@ -173,6 +174,7 @@ async def subscription_status(
     return {
         "active": True,
         "plan_name": subscription.get("plan_name"),
+        "start_date": start_date.isoformat() if start_date else None,
         "end_date": end_date.isoformat() if end_date else None,
         "remaining_days": remaining_days,
     }
@@ -235,66 +237,77 @@ async def verify_subscription(
     payload: dict = Depends(get_current_user),
     pool=Depends(get_db_pool),
 ):
-    settings = _get_razorpay_settings()
-    if not (settings["key_id"] and settings["key_secret"]):
-        raise HTTPException(status_code=400, detail="Razorpay keys missing.")
-    if not (req.razorpay_payment_id and req.razorpay_subscription_id and req.razorpay_signature):
-        raise HTTPException(status_code=400, detail="Payment not completed.")
-    user_id = payload.get("uid")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid user.")
+    try:
+        settings = _get_razorpay_settings()
+        if not (settings["key_id"] and settings["key_secret"]):
+            raise HTTPException(status_code=400, detail="Razorpay keys missing.")
+        if not (req.razorpay_payment_id and req.razorpay_subscription_id and req.razorpay_signature):
+            raise HTTPException(status_code=400, detail="Payment not completed.")
+        user_id = payload.get("uid")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid user.")
 
-    signature_payload = f"{req.razorpay_payment_id}|{req.razorpay_subscription_id}"
-    digest = hmac.new(
-        settings["key_secret"].encode("utf-8"),
-        signature_payload.encode("utf-8"),
-        hashlib.sha256,
-    ).hexdigest()
-    if digest != req.razorpay_signature:
-        raise HTTPException(status_code=400, detail="Invalid signature.")
+        signature_payload = f"{req.razorpay_payment_id}|{req.razorpay_subscription_id}"
+        digest = hmac.new(
+            settings["key_secret"].encode("utf-8"),
+            signature_payload.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        if digest != req.razorpay_signature:
+            raise HTTPException(status_code=400, detail="Invalid signature.")
 
-    client = _razorpay_client()
-    sub_data = client.subscription.fetch(req.razorpay_subscription_id)
-    if sub_data.get("status") != "active":
-        raise HTTPException(status_code=400, detail="Payment not completed.")
-    pay_data = client.payment.fetch(req.razorpay_payment_id)
-    if pay_data.get("status") != "captured":
-        raise HTTPException(status_code=400, detail="Payment not completed.")
+        client = _razorpay_client()
+        sub_data = client.subscription.fetch(req.razorpay_subscription_id)
+        if sub_data.get("status") != "active":
+            raise HTTPException(status_code=400, detail="Payment not completed.")
+        pay_data = client.payment.fetch(req.razorpay_payment_id)
+        if pay_data.get("status") != "captured":
+            raise HTTPException(status_code=400, detail="Payment not completed.")
 
-    latest = await get_latest_subscription(pool, user_id)
-    if not latest or latest.get("razorpay_subscription_id") != req.razorpay_subscription_id:
-        raise HTTPException(status_code=400, detail="Subscription not found.")
+        latest = await get_latest_subscription(pool, user_id)
+        if not latest or latest.get("razorpay_subscription_id") != req.razorpay_subscription_id:
+            raise HTTPException(status_code=400, detail="Subscription not found.")
 
-    await ensure_default_plans(pool, DEFAULT_PLAN_CONFIG)
-    plan = await get_plan_by_name(pool, latest.get("plan_name"))
-    if not plan:
-        raise HTTPException(status_code=400, detail="Plan configuration missing.")
+        await ensure_default_plans(pool, DEFAULT_PLAN_CONFIG)
+        plan = await get_plan_by_name(pool, latest.get("plan_name"))
+        if not plan:
+            raise HTTPException(status_code=400, detail="Plan configuration missing.")
 
-    # Cancel any previous active subscription before activating the new one.
-    active = await get_active_subscription(pool, user_id)
-    if active and active.get("id") != latest.get("id"):
-        if active.get("razorpay_subscription_id"):
-            client = _razorpay_client()
-            _cancel_razorpay_subscription(client, active.get("razorpay_subscription_id"))
-        await update_subscription_status(
+        # Cancel any previous active subscription before activating the new one.
+        active = await get_active_subscription(pool, user_id)
+        carryover_days = 0
+        if active and active.get("id") != latest.get("id"):
+            prev_end = active.get("end_date")
+            if prev_end:
+                if prev_end.tzinfo is None:
+                    prev_end = prev_end.replace(tzinfo=timezone.utc)
+                carryover_days = max((prev_end - datetime.now(timezone.utc)).days, 0)
+            if active.get("razorpay_subscription_id"):
+                client = _razorpay_client()
+                _cancel_razorpay_subscription(client, active.get("razorpay_subscription_id"))
+            await update_subscription_status(
+                pool,
+                subscription_id=active.get("id"),
+                status="cancelled",
+                end_date=datetime.now(timezone.utc),
+            )
+
+        start_date = datetime.now(timezone.utc)
+        end_date = start_date + timedelta(days=plan["duration_days"] + carryover_days)
+        await activate_subscription(pool, latest["id"], start_date, end_date)
+        await create_payment(
             pool,
-            subscription_id=active.get("id"),
-            status="cancelled",
-            end_date=datetime.now(timezone.utc),
+            user_id=user_id,
+            subscription_id=latest["id"],
+            amount=plan["amount"],
+            currency=plan["currency"],
+            status="captured",
+            razorpay_payment_id=req.razorpay_payment_id,
+            raw=req.dict(),
         )
 
-    start_date = datetime.now(timezone.utc)
-    end_date = start_date + timedelta(days=plan["duration_days"])
-    await activate_subscription(pool, latest["id"], start_date, end_date)
-    await create_payment(
-        pool,
-        user_id=user_id,
-        subscription_id=latest["id"],
-        amount=plan["amount"],
-        currency=plan["currency"],
-        status="captured",
-        razorpay_payment_id=req.razorpay_payment_id,
-        raw=req.dict(),
-    )
-
-    return {"status": "active", "end_date": end_date.isoformat()}
+        return {"status": "active", "end_date": end_date.isoformat()}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Verification failed: {exc}")

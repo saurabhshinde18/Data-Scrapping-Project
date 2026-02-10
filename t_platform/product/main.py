@@ -3,10 +3,13 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from t_platform.product.api.product_api import router
-from t_platform.product.api.auth_api import auth_router
-from t_platform.product.api.subscription_api import subscription_router
-from t_platform.product.api.admin_api import admin_router
+from t_platform.product.api.routes import (
+    admin_router,
+    analytics_router,
+    auth_router,
+    product_router,
+    subscription_router,
+)
 from t_platform.product.db import create_pool, init_db
 
 def _load_env():
@@ -31,10 +34,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router, prefix="/product")
+app.include_router(product_router, prefix="/product")
 app.include_router(auth_router, prefix="/auth")
 app.include_router(subscription_router, prefix="/subscriptions")
 app.include_router(admin_router, prefix="/admin")
+app.include_router(analytics_router, prefix="/analytics")
 
 
 @app.on_event("startup")

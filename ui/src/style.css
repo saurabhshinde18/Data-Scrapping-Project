@@ -51,8 +51,56 @@
     @apply grid gap-6 lg:grid-cols-[260px_1fr];
   }
 
+  .admin-layout-v2 {
+    @apply items-start;
+  }
+
   .admin-sidebar {
     @apply flex h-fit flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm;
+  }
+
+  .admin-sidebar-v2 {
+    @apply justify-between border-slate-100 bg-white;
+  }
+
+  .admin-main-v2 {
+    @apply min-w-0;
+  }
+
+  @media (min-width: 1024px) {
+    .admin-layout-v2 {
+      grid-template-columns: 1fr;
+    }
+
+    .admin-sidebar-v2 {
+      position: fixed;
+      top: 1.5rem;
+      left: max(1.5rem, calc((100vw - 1536px) / 2 + 1.5rem));
+      width: 260px;
+      max-height: calc(100vh - 3rem);
+      overflow-y: auto;
+      z-index: 30;
+    }
+
+    .admin-main-v2 {
+      margin-left: calc(260px + 1.5rem);
+    }
+  }
+
+  .sidebar-brand {
+    @apply flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3;
+  }
+
+  .sidebar-logo {
+    @apply flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-sm font-semibold text-white;
+  }
+
+  .sidebar-group {
+    @apply mt-6;
+  }
+
+  .sidebar-title {
+    @apply text-xs uppercase tracking-[0.3em] text-slate-400;
   }
 
   .admin-nav {
@@ -64,15 +112,116 @@
   }
 
   .admin-nav button[data-active="true"] {
-    @apply bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-200/60;
+    @apply bg-slate-900 text-white shadow-sm;
   }
 
   .admin-header {
     @apply flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm;
   }
 
+  .admin-header-v2 {
+    @apply flex flex-wrap items-center justify-between gap-4 border-slate-100 bg-white/80;
+  }
+
+  .admin-search {
+    @apply flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600;
+  }
+
   .admin-tabs {
     @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-sm;
+  }
+
+  .metric-pill {
+    @apply ml-2 inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700;
+  }
+
+  .metric-pill.muted {
+    @apply bg-rose-100 text-rose-700;
+  }
+
+  .metric-pill.neutral {
+    @apply bg-slate-100 text-slate-700;
+  }
+
+  .card-header-row {
+    @apply flex flex-wrap items-center justify-between gap-4;
+  }
+
+  .range-tabs {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .range-tab {
+    @apply rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-500 transition hover:border-slate-300 hover:text-slate-700;
+  }
+
+  .range-tab.active {
+    @apply border-slate-900 bg-slate-900 text-white;
+  }
+
+  .area-chart {
+    @apply relative rounded-2xl border border-slate-100 bg-slate-50 p-4;
+  }
+
+  .area-chart svg {
+    @apply h-52 w-full;
+  }
+
+  .area-axis {
+    @apply mt-4 flex items-center justify-between text-[0.65rem] uppercase tracking-[0.2em] text-slate-400;
+  }
+
+  .chart-tooltip {
+    @apply pointer-events-none absolute -translate-x-1/2 -translate-y-full rounded-full bg-slate-900 px-4 py-2 text-center text-xs text-slate-100 shadow-lg;
+    min-width: 110px;
+  }
+
+  .chart-tooltip-label {
+    @apply text-[0.65rem] uppercase tracking-[0.18em] text-slate-300;
+  }
+
+  .chart-tooltip-value {
+    @apply mt-1 text-sm font-semibold text-white;
+  }
+
+  .chart-tooltip-sub {
+    @apply mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-slate-300;
+  }
+
+  .table-wrap {
+    @apply overflow-x-auto;
+  }
+
+  .admin-table {
+    @apply w-full text-sm;
+  }
+
+  .admin-table thead th {
+    @apply pb-3 text-left text-xs uppercase tracking-[0.2em] text-slate-400;
+  }
+
+  .admin-table tbody tr {
+    @apply border-t border-slate-100;
+  }
+
+  .admin-table tbody td {
+    @apply py-3 pr-4 text-slate-700;
+  }
+
+  .chip {
+    @apply rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600;
+  }
+
+  .status-pill {
+    @apply inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600;
+  }
+
+  .status-pill.success {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-700;
+  }
+
+  .status-pill.warning {
+    @apply border-amber-200 bg-amber-50 text-amber-700;
   }
 
   .admin-card {
@@ -106,6 +255,14 @@
 
   .card h2 {
     @apply mt-3 leading-snug;
+  }
+
+  .card-image-wrap {
+    @apply mt-4 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50;
+  }
+
+  .card-image {
+    @apply h-48 w-full object-contain bg-white;
   }
 
   .card .badge {
@@ -205,6 +362,104 @@
 
   .skeleton-row {
     @apply mt-4 grid grid-cols-3 gap-3;
+  }
+
+  .chart-row {
+    @apply flex items-end gap-3;
+    min-height: 200px;
+  }
+
+  .chart-column {
+    @apply flex flex-1 flex-col items-center gap-2;
+  }
+
+  .chart-bar {
+    @apply w-full rounded-full bg-gradient-to-t from-indigo-500 via-sky-400 to-emerald-300 shadow-sm;
+  }
+
+  .chart-label {
+    @apply text-xs font-medium text-slate-500;
+  }
+
+  .chart-meta {
+    @apply mt-4 flex items-center justify-between text-xs text-slate-500;
+  }
+
+  .donut-wrap {
+    @apply grid gap-4 md:grid-cols-[160px_1fr] items-center;
+  }
+
+  .donut-chart {
+    @apply relative h-40 w-40 rounded-full;
+  }
+
+  .donut-center {
+    @apply absolute inset-4 flex flex-col items-center justify-center rounded-full bg-white text-slate-900 shadow-sm;
+  }
+
+  .donut-total {
+    @apply text-2xl font-semibold;
+  }
+
+  .donut-label {
+    @apply text-xs uppercase tracking-[0.2em] text-slate-500;
+  }
+
+  .donut-legend {
+    @apply grid gap-2 text-xs text-slate-600;
+  }
+
+  .donut-item {
+    @apply flex items-center justify-between gap-3;
+  }
+
+  .donut-dot {
+    @apply inline-flex h-2 w-2 rounded-full;
+    background: #6366f1;
+  }
+
+  .donut-dot[data-index="1"] {
+    background: #0ea5e9;
+  }
+
+  .donut-dot[data-index="2"] {
+    background: #10b981;
+  }
+
+  .donut-dot[data-index="3"] {
+    background: #f59e0b;
+  }
+
+  .donut-dot[data-index="4"] {
+    background: #f97316;
+  }
+
+  .donut-value {
+    @apply text-slate-500;
+  }
+
+  .sparkline {
+    @apply rounded-2xl border border-slate-100 bg-slate-50 p-4;
+  }
+
+  .sparkline svg {
+    @apply h-20 w-full;
+  }
+
+  .activity-grid {
+    @apply grid gap-3 md:grid-cols-3;
+  }
+
+  .activity-card {
+    @apply rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3;
+  }
+
+  .activity-label {
+    @apply text-xs uppercase tracking-[0.2em] text-slate-400;
+  }
+
+  .activity-value {
+    @apply mt-2 text-2xl font-semibold text-slate-900;
   }
 }
 

@@ -11,12 +11,14 @@ from t_platform.product.services.plan_service import (
     list_plans as list_db_plans,
     update_plan,
 )
+from t_platform.product.services.analytics_service import get_visit_series
 from t_platform.product.services.user_service import (
     admin_metrics,
     create_user,
     delete_user,
     get_user_by_email,
     get_user_by_id,
+    get_user_registration_series,
     list_admin_invites,
     list_users_with_subscription,
 )
@@ -137,6 +139,22 @@ async def invite(
 async def admin_plans(_: dict = Depends(require_admin), pool=Depends(get_db_pool)):
     await ensure_default_plans(pool, DEFAULT_PLAN_CONFIG)
     return await list_db_plans(pool)
+
+
+@admin_router.get("/visitors")
+async def visitors(
+    range_days: int = 90, _: dict = Depends(require_admin), pool=Depends(get_db_pool)
+):
+    safe_days = min(max(range_days, 1), 365)
+    return await get_visit_series(pool, safe_days)
+
+
+@admin_router.get("/registrations")
+async def registrations(
+    range_days: int = 90, _: dict = Depends(require_admin), pool=Depends(get_db_pool)
+):
+    safe_days = min(max(range_days, 1), 365)
+    return await get_user_registration_series(pool, safe_days)
 
 
 @admin_router.put("/plans/{plan_name}")

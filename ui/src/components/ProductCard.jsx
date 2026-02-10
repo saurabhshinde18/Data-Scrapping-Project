@@ -35,6 +35,16 @@ export default function ProductCard({ item, onDelete, exchangeRates }) {
         </div>
       </div>
       <h2>{item.product.title}</h2>
+      {item.product.image ? (
+        <div className="card-image-wrap">
+          <img
+            className="card-image"
+            src={item.product.image}
+            alt={item.product.title || "Product image"}
+            loading="lazy"
+          />
+        </div>
+      ) : null}
 
       <div className="price-row">
         <div>

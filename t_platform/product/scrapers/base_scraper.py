@@ -274,6 +274,10 @@ class BaseScraper:
                 data = json.loads(script.string)
                 if isinstance(data, dict) and data.get('@type') == 'Product':
                     return data
+                if isinstance(data, dict) and data.get('@graph'):
+                    for item in data.get('@graph', []):
+                        if isinstance(item, dict) and item.get('@type') == 'Product':
+                            return item
                 if isinstance(data, list):
                     for item in data:
                         if isinstance(item, dict) and item.get('@type') == 'Product':
@@ -473,6 +477,78 @@ class BaseScraper:
         
         return None
 
+    def _normalize_image_url(self, value):
+        if not value:
+            return None
+        if isinstance(value, list):
+            for item in value:
+                url = self._normalize_image_url(item)
+                if url:
+                    return url
+            return None
+        if isinstance(value, dict):
+            for item in value.values():
+                url = self._normalize_image_url(item)
+                if url:
+                    return url
+            return None
+        url = str(value).strip()
+        if not url:
+            return None
+        if url.startswith("//"):
+            url = f"https:{url}"
+        if url.startswith("/"):
+            url = urljoin(self.url, url)
+        return url
+
+    def _extract_image_from_element(self, element):
+        if not element:
+            return None
+        if element.name == "meta":
+            return element.get("content")
+        if element.name != "img":
+            return None
+
+        dynamic = element.get("data-a-dynamic-image")
+        if dynamic:
+            try:
+                data = json.loads(dynamic)
+                if isinstance(data, dict) and data:
+                    return next(iter(data.keys()))
+            except Exception:
+                match = re.search(r'https?://[^"]+', dynamic)
+                if match:
+                    return match.group(0)
+
+        for attr in ["data-old-hires", "data-lazy", "data-original", "data-src", "src"]:
+            value = element.get(attr)
+            if value:
+                return value
+
+        srcset = element.get("srcset")
+        if srcset:
+            first = srcset.split(",")[0].strip().split(" ")[0]
+            if first:
+                return first
+
+        return None
+
+    def extract_image(self, soup, selector):
+        if not selector:
+            return None
+        selectors = [s.strip() for s in selector.split(",")] if "," in selector else [selector.strip()]
+        for sel in selectors:
+            try:
+                elements = soup.select(sel)
+            except Exception:
+                elements = []
+            for element in elements:
+                value = self._extract_image_from_element(element)
+                normalized = self._normalize_image_url(value)
+                if normalized:
+                    return normalized
+        return None
+
     def extract_original_price_from_scripts(self, soup):
         """Extract original price (MRP/list price) information from script tags for Flipkart"""
         scripts = soup.find_all('script')
@@ -594,7 +670,8 @@ class BaseScraper:
             "original_price": None,
             "discount": None,
             "bank_offers": [],
-            "availability": None
+            "availability": None,
+            "image": None
         }
         
         # Extract from JSON-LD if available
@@ -611,6 +688,7 @@ class BaseScraper:
                     result["availability"] = "In Stock"
                 elif "OutOfStock" in str(availability):
                     result["availability"] = "Out of Stock"
+            result["image"] = self._normalize_image_url(jsonld_data.get("image"))
         
         # Fill in missing data with CSS selectors
         if not result["title"]:
@@ -643,6 +721,14 @@ class BaseScraper:
         
         if not result["availability"]:
             result["availability"] = self.extract(soup, self.selectors.get("availability"), "availability")
+
+        if not result["image"]:
+            result["image"] = self.extract_image(soup, self.selectors.get("image"))
+        if not result["image"]:
+            result["image"] = self.extract_image(
+                soup,
+                "meta[property='og:image'], meta[name='og:image'], meta[property='twitter:image'], meta[name='twitter:image']",
+            )
 
         # Normalize discount to align with product page percentage when possible
         result["discount"] = self._normalize_discount(

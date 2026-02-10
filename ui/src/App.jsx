@@ -3,9 +3,7 @@ import {
   Clock,
   CreditCard,
   FileSearch,
-  LogOut,
   Plus,
-  UserCircle2,
 } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { Button } from "./components/ui/button";
@@ -22,38 +20,14 @@ import AuthSignIn from "./components/AuthSignIn";
 import AuthSignUp from "./components/AuthSignUp";
 import PlanCard from "./components/PlanCard";
 import { COUNTRY_OPTIONS, formatDate } from "./utils";
-
-const planCatalog = [
-  {
-    name: "Starter",
-    price: "$19",
-    description: "For small teams validating markets.",
-    features: ["100 searches / month", "Basic alerts", "Email support"],
-  },
-  {
-    name: "Growth",
-    price: "$79",
-    description: "Scale monitoring and reporting.",
-    features: ["1,000 searches / month", "Advanced alerts", "Team roles"],
-    highlight: true,
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    description: "Custom volumes and SLAs.",
-    features: ["Unlimited searches", "Dedicated support", "Custom integrations"],
-  },
-];
+import { planCatalog } from "./constants/plans";
+import { readJson } from "./services/api";
+import AdminPanel from "./features/admin/AdminPanel";
 
 const API_BASE = "http://127.0.0.1:8000/product";
 const AUTH_BASE = "http://127.0.0.1:8000/auth";
+const ANALYTICS_BASE = "http://127.0.0.1:8000/analytics";
 
-const readJson = async (url, options) => {
-  const response = await fetch(url, options);
-  const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
-  return { response, data };
-};
 
 const normalizePlan = (plan) => {
   const next = { ...plan };
@@ -135,7 +109,7 @@ export default function App() {
 
   const [landingView, setLandingView] = useState("dashboard");
   const [landingPage, setLandingPage] = useState("home");
-  const [activeView, setActiveView] = useState("pricing");
+  const [activeView, setActiveView] = useState("dashboard");
   const [platform, setPlatform] = useState("Amazon");
   const [country, setCountry] = useState("India");
   const [query, setQuery] = useState("");
@@ -156,6 +130,7 @@ export default function App() {
   const [planPricing, setPlanPricing] = useState([]);
   const [planPricingError, setPlanPricingError] = useState("");
   const [planPricingLoading, setPlanPricingLoading] = useState(false);
+  const [selectedPlanName, setSelectedPlanName] = useState("");
   const [adminMetricsState, setAdminMetricsState] = useState({
     total_users: 0,
     active_subscribers: 0,
@@ -173,6 +148,11 @@ export default function App() {
   const [planEditLoading, setPlanEditLoading] = useState(false);
   const [planEditError, setPlanEditError] = useState("");
   const [adminInvites, setAdminInvites] = useState([]);
+  const [adminVisitors, setAdminVisitors] = useState([]);
+  const [adminVisitorRange, setAdminVisitorRange] = useState(90);
+  const [adminVisitorsError, setAdminVisitorsError] = useState("");
+  const [adminRegistrations, setAdminRegistrations] = useState([]);
+  const [adminRegistrationsError, setAdminRegistrationsError] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
@@ -185,6 +165,8 @@ export default function App() {
   const [inviteCopyStatus, setInviteCopyStatus] = useState("");
   const [inviteDeleteLoadingId, setInviteDeleteLoadingId] = useState(null);
   const [inviteDeleteError, setInviteDeleteError] = useState("");
+  const [adminUsersError, setAdminUsersError] = useState("");
+  const [adminUsersLoading, setAdminUsersLoading] = useState(false);
 
   const cleanedResults = useMemo(
     () =>
@@ -320,6 +302,26 @@ export default function App() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const lastTracked = localStorage.getItem("visitor_last_tracked");
+    if (lastTracked === today) return;
+    let visitorId = localStorage.getItem("visitor_id");
+    if (!visitorId) {
+      visitorId = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+      localStorage.setItem("visitor_id", visitorId);
+    }
+    readJson(`${ANALYTICS_BASE}/visit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: window.location.pathname, visitor_id: visitorId }),
+    }).finally(() => {
+      localStorage.setItem("visitor_last_tracked", today);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (token) {
@@ -335,8 +337,17 @@ export default function App() {
       fetchAdminData();
       return;
     }
+    if (landingPage === "home" || landingPage === "signin" || landingPage === "signup") {
+      setLandingView("dashboard");
+      setLandingPage("dashboard");
+    }
     fetchSubscriptionStatus();
   }, [user]);
+
+  useEffect(() => {
+    if (!user || user.role !== "admin") return;
+    fetchAdminVisitors(adminVisitorRange);
+  }, [user, adminVisitorRange]);
 
   useEffect(() => {
     fetchPlanPricing();
@@ -391,8 +402,13 @@ export default function App() {
 
   const fetchAdminData = async () => {
     const token = localStorage.getItem("session_token");
-    if (!token) return;
-    const [metricsRes, usersRes, invitesRes, plansRes] = await Promise.all([
+    if (!token) {
+      setAdminUsersError("Missing session token.");
+      return;
+    }
+    setAdminUsersLoading(true);
+    setAdminUsersError("");
+    const results = await Promise.allSettled([
       readJson(`${API_BASE.replace("/product", "")}/admin/metrics`, {
         headers: { Authorization: `Bearer ${token}` },
       }),
@@ -406,18 +422,71 @@ export default function App() {
         headers: { Authorization: `Bearer ${token}` },
       }),
     ]);
-    if (metricsRes.response.ok && metricsRes.data) {
+
+    const [metricsRes, usersRes, invitesRes, plansRes] = results.map((result) =>
+      result.status === "fulfilled" ? result.value : null
+    );
+
+    if (metricsRes?.response?.ok && metricsRes.data) {
       setAdminMetricsState(metricsRes.data);
     }
-    if (usersRes.response.ok && Array.isArray(usersRes.data)) {
+    if (usersRes?.response?.ok && Array.isArray(usersRes.data)) {
       setAdminUsers(usersRes.data);
+    } else if (usersRes?.response) {
+      const detail =
+        (usersRes.data && usersRes.data.detail) ||
+        usersRes.text ||
+        usersRes.response.statusText ||
+        "Failed to load users.";
+      setAdminUsersError(detail);
     }
-    if (invitesRes.response.ok && Array.isArray(invitesRes.data)) {
+    if (invitesRes?.response?.ok && Array.isArray(invitesRes.data)) {
       setAdminInvites(invitesRes.data);
     }
-    if (plansRes.response.ok && Array.isArray(plansRes.data)) {
+    if (plansRes?.response?.ok && Array.isArray(plansRes.data)) {
       setAdminPlans(plansRes.data.map(normalizePlan));
     }
+    setAdminUsersLoading(false);
+  };
+
+  const fetchAdminVisitors = async (rangeDays) => {
+    const token = localStorage.getItem("session_token");
+    if (!token) {
+      setAdminVisitorsError("Missing session token.");
+      return;
+    }
+    setAdminVisitorsError("");
+    setAdminRegistrationsError("");
+    const { response, data, text } = await readJson(
+      `${API_BASE.replace("/product", "")}/admin/visitors?range_days=${rangeDays}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (!response.ok || !Array.isArray(data)) {
+      setAdminVisitorsError(
+        (data && data.detail) || text || response.statusText || "Failed to load visitors."
+      );
+    } else {
+      setAdminVisitors(data);
+    }
+
+    const registrationsRes = await readJson(
+      `${API_BASE.replace("/product", "")}/admin/registrations?range_days=${rangeDays}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (!registrationsRes.response.ok || !Array.isArray(registrationsRes.data)) {
+      setAdminRegistrationsError(
+        (registrationsRes.data && registrationsRes.data.detail) ||
+          registrationsRes.text ||
+          registrationsRes.response.statusText ||
+          "Failed to load registrations."
+      );
+      return;
+    }
+    setAdminRegistrations(registrationsRes.data);
   };
 
   const scrollToSection = (sectionId) => {
@@ -1007,10 +1076,12 @@ export default function App() {
   const handleSubscribe = async (planName) => {
     setSubscriptionError("");
     setSubscriptionLoading(true);
+    setSelectedPlanName(planName);
     const token = localStorage.getItem("session_token");
     if (!token) {
       setSubscriptionError("Please sign in to subscribe.");
       setSubscriptionLoading(false);
+      setSelectedPlanName("");
       return;
     }
     try {
@@ -1056,18 +1127,33 @@ export default function App() {
             setSubscriptionError(
               verify.data?.detail || "Subscription verification failed."
             );
+            setSubscriptionLoading(false);
+            setSelectedPlanName("");
             return;
           }
           await fetchSubscriptionStatus();
           setLandingPage("dashboard");
+          setSubscriptionLoading(false);
+          setSelectedPlanName("");
+        },
+        modal: {
+          ondismiss: () => {
+            setSubscriptionLoading(false);
+            setSelectedPlanName("");
+          },
         },
       };
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
       setSubscriptionError(err instanceof Error ? err.message : "Subscription failed.");
-    } finally {
       setSubscriptionLoading(false);
+      setSelectedPlanName("");
+    } finally {
+      if (!window.Razorpay) {
+        setSubscriptionLoading(false);
+        setSelectedPlanName("");
+      }
     }
   };
 
@@ -1090,549 +1176,63 @@ export default function App() {
 
   if (user && user.role === "admin") {
     return (
-      <div className="admin-shell">
-        <div className="admin-panel">
-          {inviteOpen ? (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 py-10">
-              <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-semibold text-slate-900">Create invite</h2>
-                    <p className="mt-1 text-sm text-slate-600">
-                      Generate a temporary password for a new user.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="text-sm font-semibold text-slate-500 hover:text-slate-700"
-                    onClick={handleInviteClose}
-                  >
-                    Close
-                  </button>
-                </div>
-
-                <div className="mt-6 grid gap-4">
-                  <div>
-                    <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                      Email
-                    </label>
-                    <Input
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="name@company.com"
-                      className="mt-2"
-                    />
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                        Full Name
-                      </label>
-                      <Input
-                        value={inviteName}
-                        onChange={(e) => setInviteName(e.target.value)}
-                        placeholder="Full name"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                        Username
-                      </label>
-                      <Input
-                        value={inviteUsername}
-                        onChange={(e) => setInviteUsername(e.target.value)}
-                        placeholder="username"
-                        className="mt-2"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-[140px_1fr]">
-                    <div>
-                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                        Phone Code
-                      </label>
-                      <Input
-                        value={invitePhoneCode}
-                        onChange={(e) => setInvitePhoneCode(e.target.value)}
-                        placeholder="+91"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                        Phone Number
-                      </label>
-                      <Input
-                        value={invitePhoneNumber}
-                        onChange={(e) => setInvitePhoneNumber(e.target.value)}
-                        placeholder="9876543210"
-                        className="mt-2"
-                      />
-                    </div>
-                  </div>
-
-                  {inviteError ? (
-                    <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                      {inviteError}
-                    </div>
-                  ) : null}
-
-                  {inviteSuccess ? (
-                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                      <div className="font-semibold">Invite created</div>
-                      <div className="mt-2 text-xs uppercase tracking-[0.2em] text-emerald-500">
-                        Temporary Credentials
-                      </div>
-                      <div className="mt-2 text-sm text-emerald-700">
-                        Email: {inviteSuccess.email}
-                      </div>
-                      <div className="text-sm text-emerald-700">
-                        Password: {inviteSuccess.temp_password}
-                      </div>
-                      <div className="mt-3 flex flex-wrap items-center gap-3">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="border-emerald-200 bg-white text-emerald-700"
-                          onClick={handleInviteCopy}
-                        >
-                          Copy credentials
-                        </Button>
-                        {inviteCopyStatus ? (
-                          <span className="text-xs text-emerald-600">{inviteCopyStatus}</span>
-                        ) : null}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="border-slate-200 bg-white text-slate-700"
-                    onClick={handleInviteClose}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    className="bg-indigo-600 text-white hover:bg-indigo-500"
-                    onClick={handleCreateInvite}
-                    disabled={inviteLoading}
-                  >
-                    {inviteLoading ? "Creating..." : "Create invite"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-          {planEditOpen ? (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 py-10">
-              <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-semibold text-slate-900">
-                      Edit pricing
-                    </h2>
-                    <p className="mt-1 text-sm text-slate-600">
-                      Update pricing details for {planEdit?.name}.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="text-sm font-semibold text-slate-500 hover:text-slate-700"
-                    onClick={handlePlanEditClose}
-                  >
-                    Close
-                  </button>
-                </div>
-
-                <div className="mt-6 grid gap-4">
-                  <div>
-                    <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                      Amount
-                    </label>
-                    <Input
-                      value={planEditAmount}
-                      onChange={(e) => setPlanEditAmount(e.target.value)}
-                      placeholder="1999"
-                      className="mt-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                      Description
-                    </label>
-                    <textarea
-                      value={planEditDescription}
-                      onChange={(e) => setPlanEditDescription(e.target.value)}
-                      placeholder="Short plan description"
-                      className="mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                        Currency
-                      </label>
-                      <Input
-                        value={planEditCurrency}
-                        onChange={(e) => setPlanEditCurrency(e.target.value)}
-                        placeholder="INR"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                        Duration (days)
-                      </label>
-                      <Input
-                        value={planEditDuration}
-                        onChange={(e) => setPlanEditDuration(e.target.value)}
-                        placeholder="30"
-                        className="mt-2"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                      Features (one per line)
-                    </label>
-                    <textarea
-                      value={planEditFeaturesText}
-                      onChange={(e) => setPlanEditFeaturesText(e.target.value)}
-                      placeholder="Feature 1&#10;Feature 2"
-                      className="mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-                      rows={4}
-                    />
-                  </div>
-                  {planEditError ? (
-                    <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                      {planEditError}
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="border-slate-200 bg-white text-slate-700"
-                    onClick={handlePlanEditClose}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    className="bg-indigo-600 text-white hover:bg-indigo-500"
-                    onClick={handlePlanSave}
-                    disabled={planEditLoading}
-                  >
-                    {planEditLoading ? "Saving..." : "Save changes"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-          <header className="admin-header">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <span className="badge">Admin Panel</span>
-                <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
-                  Pricing Management Console
-                </h1>
-                <p className="mt-2 text-sm text-slate-600">
-                  Manage subscription pricing and plan access for users.
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  className="border-slate-200 bg-white text-slate-700"
-                  onClick={handleExport}
-                >
-                  Export
-                </Button>
-                <Button
-                  className="bg-indigo-600 text-white hover:bg-indigo-500"
-                  onClick={handleInviteOpen}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Invite
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-slate-200 bg-white text-slate-700"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </Button>
-              </div>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card className="admin-card">
-                <CardHeader>
-                  <CardTitle className="text-slate-900">Total Users</CardTitle>
-                  <CardDescription className="text-slate-600">
-                    Registered accounts in the system.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="text-3xl font-semibold text-slate-900">
-                  {adminMetricsState.total_users}
-                </CardContent>
-              </Card>
-              <Card className="admin-card">
-                <CardHeader>
-                  <CardTitle className="text-slate-900">Active Subscribers</CardTitle>
-                  <CardDescription className="text-slate-600">
-                    Paid users with active plans.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="text-3xl font-semibold text-slate-900">
-                  {adminMetricsState.active_subscribers}
-                </CardContent>
-              </Card>
-              <Card className="admin-card">
-                <CardHeader>
-                  <CardTitle className="text-slate-900">Revenue</CardTitle>
-                  <CardDescription className="text-slate-600">
-                    Current billing cycle.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="text-3xl font-semibold text-slate-900">
-                  INR {adminMetricsState.revenue.toLocaleString()}
-                </CardContent>
-              </Card>
-            </div>
-          </header>
-
-          <section className="admin-layout">
-            <aside className="admin-sidebar">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                Navigation
-              </p>
-              <nav className="admin-nav">
-                <button
-                  type="button"
-                  data-active={activeView === "dashboard"}
-                  onClick={() => setActiveView("dashboard")}
-                >
-                  <BarChart3 className="h-4 w-4" />
-                  Dashboard
-                </button>
-                <button
-                  type="button"
-                  data-active={activeView === "users"}
-                  onClick={() => setActiveView("users")}
-                >
-                  <UserCircle2 className="h-4 w-4" />
-                  Users
-                </button>
-                <button
-                  type="button"
-                  data-active={activeView === "invites"}
-                  onClick={() => setActiveView("invites")}
-                >
-                  <UserCircle2 className="h-4 w-4" />
-                  Invites
-                </button>
-                <button
-                  type="button"
-                  data-active={activeView === "pricing"}
-                  onClick={() => setActiveView("pricing")}
-                >
-                  <CreditCard className="h-4 w-4" />
-                  Pricing
-                </button>
-              </nav>
-            </aside>
-
-            <div className="space-y-6">
-              {activeView === "pricing" ? (
-                <Card className="admin-card">
-                  <CardHeader>
-                    <CardTitle className="text-slate-900">Plan Pricing</CardTitle>
-                    <CardDescription className="text-slate-600">
-                      Update pricing and feature access for each plan.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid gap-4 md:grid-cols-3">
-                      {adminMergedPlans.map((plan) => (
-                        <PlanCard
-                          key={plan.name}
-                          plan={plan}
-                          highlight={plan.highlight}
-                          actionLabel="Edit Pricing"
-                          onAction={() => handlePlanEditOpen(plan)}
-                        />
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : null}
-
-              {activeView === "users" ? (
-                <Card className="admin-card">
-                  <CardHeader>
-                    <CardTitle className="text-slate-900">Users</CardTitle>
-                    <CardDescription className="text-slate-600">
-                      Track active plans and remaining subscription days.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {adminUsers.length === 0 ? (
-                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                        No user records found yet.
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="text-left text-xs uppercase tracking-[0.2em] text-slate-400">
-                              <th className="py-2 pr-4">User</th>
-                              <th className="py-2 pr-4">Plan</th>
-                              <th className="py-2 pr-4">Status</th>
-                              <th className="py-2 pr-4">Remaining</th>
-                              <th className="py-2 pr-4">End Date</th>
-                            </tr>
-                          </thead>
-                          <tbody className="text-slate-700">
-                            {adminUsers.map((u) => (
-                              <tr key={u.id} className="border-t border-slate-100">
-                                <td className="py-3 pr-4">
-                                  <div className="font-semibold text-slate-900">
-                                    {u.full_name || u.username || "User"}
-                                  </div>
-                                  <div className="text-xs text-slate-500">{u.email}</div>
-                                </td>
-                                <td className="py-3 pr-4">{u.plan_name || "None"}</td>
-                                <td className="py-3 pr-4 capitalize">{u.status || "none"}</td>
-                                <td className="py-3 pr-4">
-                                  {typeof u.remaining_days === "number"
-                                    ? `${u.remaining_days} days`
-                                    : "-"}
-                                </td>
-                                <td className="py-3 pr-4">
-                                  {u.end_date ? formatDate(u.end_date) : "-"}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ) : null}
-
-              {activeView === "invites" ? (
-                <Card className="admin-card">
-                  <CardHeader>
-                    <CardTitle className="text-slate-900">Admin Invites</CardTitle>
-                    <CardDescription className="text-slate-600">
-                      Invited admin accounts and their status.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {inviteDeleteError ? (
-                      <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                        {inviteDeleteError}
-                      </div>
-                    ) : null}
-                    {adminInvites.length === 0 ? (
-                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                        No invited admins yet.
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="text-left text-xs uppercase tracking-[0.2em] text-slate-400">
-                              <th className="py-2 pr-4">Admin</th>
-                              <th className="py-2 pr-4">Invited By</th>
-                              <th className="py-2 pr-4">Invited At</th>
-                              <th className="py-2 pr-4">Contact</th>
-                              <th className="py-2 pr-4">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody className="text-slate-700">
-                            {adminInvites.map((u) => (
-                              <tr key={u.id} className="border-t border-slate-100">
-                                <td className="py-3 pr-4">
-                                  <div className="font-semibold text-slate-900">
-                                    {u.full_name || u.username || "Admin"}
-                                  </div>
-                                  <div className="text-xs text-slate-500">{u.email}</div>
-                                </td>
-                                <td className="py-3 pr-4">{u.invited_by || "-"}</td>
-                                <td className="py-3 pr-4">
-                                  {u.invited_at ? formatDate(u.invited_at) : "-"}
-                                </td>
-                                <td className="py-3 pr-4">
-                                  {u.phone_code && u.phone_number
-                                    ? `${u.phone_code} ${u.phone_number}`
-                                    : "-"}
-                                </td>
-                                <td className="py-3 pr-4">
-                                  <button
-                                    type="button"
-                                    className="delete"
-                                    onClick={() => handleDeleteInvite(u.id)}
-                                    disabled={inviteDeleteLoadingId === u.id}
-                                  >
-                                    {inviteDeleteLoadingId === u.id ? "Deleting..." : "Delete"}
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ) : null}
-
-              {activeView === "dashboard" ? (
-                <div className="grid gap-4 md:grid-cols-3">
-                  <Card className="admin-card">
-                    <CardHeader>
-                      <CardTitle>Total Users</CardTitle>
-                      <CardDescription>Registered accounts in the system.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-3xl font-semibold text-slate-900">
-                      {adminMetricsState.total_users}
-                    </CardContent>
-                  </Card>
-                  <Card className="admin-card">
-                    <CardHeader>
-                      <CardTitle>Monthly Revenue</CardTitle>
-                      <CardDescription>Current billing cycle.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-3xl font-semibold text-slate-900">
-                      INR {adminMetricsState.revenue.toLocaleString()}
-                    </CardContent>
-                  </Card>
-                  <Card className="admin-card">
-                    <CardHeader>
-                      <CardTitle>Active Subscribers</CardTitle>
-                      <CardDescription>Paying users this month.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-3xl font-semibold text-slate-900">
-                      {adminMetricsState.active_subscribers}
-                    </CardContent>
-                  </Card>
-                </div>
-              ) : null}
-            </div>
-          </section>
-        </div>
-      </div>
+      <AdminPanel
+        activeView={activeView}
+        setActiveView={setActiveView}
+        adminMetricsState={adminMetricsState}
+        adminUsers={adminUsers}
+        adminInvites={adminInvites}
+        adminMergedPlans={adminMergedPlans}
+        adminVisitors={adminVisitors}
+        adminVisitorRange={adminVisitorRange}
+        setAdminVisitorRange={setAdminVisitorRange}
+        adminVisitorsError={adminVisitorsError}
+        adminRegistrations={adminRegistrations}
+        adminRegistrationsError={adminRegistrationsError}
+        adminUsersError={adminUsersError}
+        adminUsersLoading={adminUsersLoading}
+        handleLogout={handleLogout}
+        handleExport={handleExport}
+        handleInviteOpen={handleInviteOpen}
+        inviteOpen={inviteOpen}
+        handleInviteClose={handleInviteClose}
+        inviteEmail={inviteEmail}
+        setInviteEmail={setInviteEmail}
+        inviteName={inviteName}
+        setInviteName={setInviteName}
+        inviteUsername={inviteUsername}
+        setInviteUsername={setInviteUsername}
+        invitePhoneCode={invitePhoneCode}
+        setInvitePhoneCode={setInvitePhoneCode}
+        invitePhoneNumber={invitePhoneNumber}
+        setInvitePhoneNumber={setInvitePhoneNumber}
+        inviteError={inviteError}
+        inviteSuccess={inviteSuccess}
+        inviteCopyStatus={inviteCopyStatus}
+        handleInviteCopy={handleInviteCopy}
+        handleCreateInvite={handleCreateInvite}
+        inviteLoading={inviteLoading}
+        inviteDeleteError={inviteDeleteError}
+        inviteDeleteLoadingId={inviteDeleteLoadingId}
+        handleDeleteInvite={handleDeleteInvite}
+        planEditOpen={planEditOpen}
+        handlePlanEditClose={handlePlanEditClose}
+        planEdit={planEdit}
+        planEditAmount={planEditAmount}
+        setPlanEditAmount={setPlanEditAmount}
+        planEditDescription={planEditDescription}
+        setPlanEditDescription={setPlanEditDescription}
+        planEditCurrency={planEditCurrency}
+        setPlanEditCurrency={setPlanEditCurrency}
+        planEditDuration={planEditDuration}
+        setPlanEditDuration={setPlanEditDuration}
+        planEditFeaturesText={planEditFeaturesText}
+        setPlanEditFeaturesText={setPlanEditFeaturesText}
+        planEditError={planEditError}
+        planEditLoading={planEditLoading}
+        handlePlanSave={handlePlanSave}
+        handlePlanEditOpen={handlePlanEditOpen}
+      />
     );
   }
 
@@ -1676,7 +1276,8 @@ export default function App() {
               {[
                 { label: "Dashboard", id: "dashboard", icon: BarChart3 },
                 { label: "Scrape", id: "scrape", icon: FileSearch },
-                { label: "Subscriptions", id: "subscriptions", icon: CreditCard },
+                { label: "Subscription", id: "subscriptions", icon: CreditCard },
+                { label: "Billing", id: "billing", icon: CreditCard },
                 { label: "History", id: "history", icon: Clock },
               ].map((item) => (
                 <button
@@ -1864,13 +1465,136 @@ export default function App() {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                      Subscriptions
+                      Subscription
                     </p>
                     <h3 className="mt-2 text-2xl font-semibold text-slate-900">
-                      Plans Built for Data Teams
+                      Current Plan
                     </h3>
                     <p className="mt-2 text-sm text-slate-600">
-                      Scale from exploratory scraping to enterprise pipelines.
+                      Your active subscription details.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-6 grid gap-4 md:grid-cols-3">
+                  {(() => {
+                    const activePlan = mergedPlans.find(
+                      (plan) =>
+                        subscriptionStatus.active &&
+                        subscriptionStatus.plan_name === plan.name
+                    );
+                    if (!activePlan) {
+                      return (
+                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                          No active subscription yet.
+                        </div>
+                      );
+                    }
+                    return (
+                      <PlanCard
+                        key={activePlan.name}
+                        plan={activePlan}
+                        highlight={activePlan.highlight}
+                        actionLabel="Active Plan"
+                        actionDisabled
+                        onAction={() => {}}
+                        footer={
+                          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                            Active
+                          </span>
+                        }
+                      />
+                    );
+                  })()}
+                </div>
+                <div className="mt-6 grid gap-3 text-sm text-slate-600 md:grid-cols-3">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                      Start Date
+                    </p>
+                    <p className="mt-2 font-semibold text-slate-900">
+                      {subscriptionStatus.start_date
+                        ? formatDate(subscriptionStatus.start_date)
+                        : "-"}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                      End Date
+                    </p>
+                    <p className="mt-2 font-semibold text-slate-900">
+                      {subscriptionStatus.end_date
+                        ? formatDate(subscriptionStatus.end_date)
+                        : "-"}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                      Days Left
+                    </p>
+                    <p className="mt-2 font-semibold text-slate-900">
+                      {typeof subscriptionStatus.remaining_days === "number"
+                        ? `${subscriptionStatus.remaining_days} days`
+                        : "-"}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  {(() => {
+                    const isExpired =
+                      !subscriptionStatus.active ||
+                      (typeof subscriptionStatus.remaining_days === "number" &&
+                        subscriptionStatus.remaining_days <= 0);
+                    const activeIndex = mergedPlans.findIndex(
+                      (plan) => subscriptionStatus.plan_name === plan.name
+                    );
+                    const hasHigherPlan =
+                      activeIndex >= 0 && activeIndex < mergedPlans.length - 1;
+
+                    if (isExpired) {
+                      return (
+                        <Button
+                          className="bg-emerald-600 text-white hover:bg-emerald-500"
+                          onClick={() => handleLandingNav("billing")}
+                        >
+                          {subscriptionStatus.active ? "Renew Plan" : "Buy Plan"}
+                        </Button>
+                      );
+                    }
+
+                    if (!hasHigherPlan) {
+                      return (
+                        <div className="text-sm text-slate-500">
+                          You are on the highest plan.
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <Button
+                        variant="outline"
+                        className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                        onClick={() => handleLandingNav("billing")}
+                      >
+                        Upgrade Plan
+                      </Button>
+                    );
+                  })()}
+                </div>
+              </section>
+            ) : null}
+
+            {landingPage === "billing" ? (
+              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                      Billing
+                    </p>
+                    <h3 className="mt-2 text-2xl font-semibold text-slate-900">
+                      All Plans
+                    </h3>
+                    <p className="mt-2 text-sm text-slate-600">
+                      Switch or upgrade your plan at any time.
                     </p>
                   </div>
                 </div>
@@ -1879,13 +1603,35 @@ export default function App() {
                     const isActive =
                       subscriptionStatus.active &&
                       subscriptionStatus.plan_name === plan.name;
+                    const activeIndex = mergedPlans.findIndex(
+                      (item) => item.name === subscriptionStatus.plan_name
+                    );
+                    const isOnHighestPlan =
+                      subscriptionStatus.active &&
+                      activeIndex >= 0 &&
+                      activeIndex === mergedPlans.length - 1;
+                    const isSelected =
+                      selectedPlanName && selectedPlanName === plan.name;
+                    const disableOther =
+                      selectedPlanName && selectedPlanName !== plan.name;
                     return (
                       <PlanCard
                         key={plan.name}
                         plan={plan}
                         highlight={plan.highlight}
-                        actionLabel={isActive ? "Active Plan" : "Subscribe"}
-                        actionDisabled={subscriptionLoading || isActive}
+                        actionLabel={
+                          isActive
+                            ? "Active Plan"
+                            : isSelected && subscriptionLoading
+                            ? "Processing..."
+                            : "Subscribe"
+                        }
+                        actionDisabled={
+                          subscriptionLoading ||
+                          isActive ||
+                          disableOther ||
+                          isOnHighestPlan
+                        }
                         onAction={() => handleSubscribe(plan.name)}
                         footer={
                           isActive ? (

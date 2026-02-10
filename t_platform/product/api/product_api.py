@@ -13,9 +13,28 @@ from t_platform.product.utils.file_writer import (
     read_storage_file,
     save_search_results,
 )
-from t_platform.product.api.auth_api import require_active_subscription
+import re
+
+from t_platform.product.api.auth_api import get_db_pool, require_active_subscription
+from t_platform.product.services.plan_service import get_plan_by_name
+from t_platform.product.services.user_service import (
+    count_searches_this_month,
+    get_active_subscription,
+    record_search_usage,
+)
 
 router = APIRouter()
+
+
+def _parse_search_limit(features: list) -> int | None:
+    for feature in features or []:
+        text = str(feature).lower()
+        if "unlimited" in text and "search" in text:
+            return None
+        match = re.search(r"(\d[\d,]*)\s*search", text)
+        if match:
+            return int(match.group(1).replace(",", ""))
+    return None
 
 # ✅ Request schema (no query params)
 class ScrapeRequest(BaseModel):
@@ -77,7 +96,11 @@ def delete_product(req: DeleteRequest):
 
 
 @router.post("/search")
-async def search_by_name(req: SearchRequest, _: dict = Depends(require_active_subscription)):
+async def search_by_name(
+    req: SearchRequest,
+    payload: dict = Depends(require_active_subscription),
+    pool=Depends(get_db_pool),
+):
     if not req.query.strip():
         raise HTTPException(status_code=400, detail="Query is required.")
 
@@ -85,6 +108,22 @@ async def search_by_name(req: SearchRequest, _: dict = Depends(require_active_su
     platforms = ["amazon", "flipkart", "reliance"]
     if platform not in platforms:
         raise HTTPException(status_code=400, detail="Unsupported platform.")
+
+    if payload.get("role") != "admin":
+        user_id = payload.get("uid")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid user.")
+        subscription = await get_active_subscription(pool, user_id)
+        plan_name = subscription.get("plan_name") if subscription else None
+        plan = await get_plan_by_name(pool, plan_name) if plan_name else None
+        limit = _parse_search_limit(plan.get("features") if plan else [])
+        if limit is not None:
+            used = await count_searches_this_month(pool, user_id)
+            if used >= limit:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Search limit reached for {plan_name or 'plan'}.",
+                )
 
     results = []
     items, cache_hit = search_products(
@@ -108,6 +147,11 @@ async def search_by_name(req: SearchRequest, _: dict = Depends(require_active_su
         "Amazon" if platform == "amazon" else "Reliance" if platform == "reliance" else platform
     )
     results.append({"platform": display_platform, "items": items})
+
+    if payload.get("role") != "admin":
+        user_id = payload.get("uid")
+        if user_id:
+            await record_search_usage(pool, user_id)
 
     return {
         "query": req.query,

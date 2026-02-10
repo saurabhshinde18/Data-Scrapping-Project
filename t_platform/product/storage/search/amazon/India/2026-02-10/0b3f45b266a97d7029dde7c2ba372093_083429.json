@@ -1,0 +1,157 @@
+{
+    "platform": "Amazon",
+    "country": "India",
+    "query": "iphone",
+    "results": [
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/Apple-iPhone-15-Plus-512/dp/B0CHXF9Q4H/ref=sr_1_7?dib=eyJ2IjoiMSJ9.4DxdMbwlv3sGMt_xUHlEyuc8ui5ubXxHlmgren588U4tedAePog271k38cByfE4LKlNNecEsYO5A8oW2j5J66udHQL8_iHaSyKDC0wJfZgWr2Gk4FYOvxsrpJObioA_DtLOrNgRQlZ1VmeXVvT_IpJOvWQuP_toDce2qXoBjb3yod8TL8nbezUY3SZM29KZAH340cB_blss-pecmUFHv31StEWhbn5DzDQ791GRIRtA.Vb4tvN8r45cVzPec6aEOYYu4NlJinWcvOwfqrOppdf0&dib_tag=se&keywords=iphone&qid=1770712462&sr=8-7",
+            "product": {
+                "title": "Apple iPhone 15 Plus (512 GB) - Green",
+                "price": null,
+                "original_price": null,
+                "discount": "Currently unavailable.",
+                "bank_offers": [],
+                "availability": "Currently unavailable.",
+                "image": "https://m.media-amazon.com/images/I/71ZP6U9sWTL._SX679_.jpg"
+            },
+            "scraped_at": "2026-02-10T08:34:29.276822"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/iPhone-Pro-512-Promotion-Breakthrough/dp/B0FQFQF6D1/ref=sr_1_11?dib=eyJ2IjoiMSJ9.4DxdMbwlv3sGMt_xUHlEyuc8ui5ubXxHlmgren588U4tedAePog271k38cByfE4LKlNNecEsYO5A8oW2j5J66udHQL8_iHaSyKDC0wJfZgWr2Gk4FYOvxsrpJObioA_DtLOrNgRQlZ1VmeXVvT_IpJOvWQuP_toDce2qXoBjb3yod8TL8nbezUY3SZM29KZAH340cB_blss-pecmUFHv31StEWhbn5DzDQ791GRIRtA.Vb4tvN8r45cVzPec6aEOYYu4NlJinWcvOwfqrOppdf0&dib_tag=se&keywords=iphone&qid=1770712462&sr=8-11",
+            "product": {
+                "title": "iPhone 17 Pro 512 GB: 15.93 cm (6.3\u2033) Display with Promotion up to 120Hz, A19 Pro Chip, Breakthrough Battery Life, Pro Fusion Camera System with Center Stage Front Camera; Cosmic Orange",
+                "price": "154900",
+                "original_price": null,
+                "discount": "Up to48,000.00 off",
+                "bank_offers": [
+                    "Upto \u20b94,000.00 discount on select Credit Cards"
+                ],
+                "availability": "In stock",
+                "image": "https://m.media-amazon.com/images/I/71JGCn1z1TL._SX466_.jpg"
+            },
+            "scraped_at": "2026-02-10T08:34:29.276822"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/iPhone-Pro-256-Promotion-Breakthrough/dp/B0FQG1LPVF/ref=sr_1_9?dib=eyJ2IjoiMSJ9.4DxdMbwlv3sGMt_xUHlEyuc8ui5ubXxHlmgren588U4tedAePog271k38cByfE4LKlNNecEsYO5A8oW2j5J66udHQL8_iHaSyKDC0wJfZgWr2Gk4FYOvxsrpJObioA_DtLOrNgRQlZ1VmeXVvT_IpJOvWQuP_toDce2qXoBjb3yod8TL8nbezUY3SZM29KZAH340cB_blss-pecmUFHv31StEWhbn5DzDQ791GRIRtA.Vb4tvN8r45cVzPec6aEOYYu4NlJinWcvOwfqrOppdf0&dib_tag=se&keywords=iphone&qid=1770712462&sr=8-9",
+            "product": {
+                "title": "iPhone 17 Pro 256 GB: 15.93 cm (6.3\u2033) Display with Promotion up to 120Hz, A19 Pro Chip, Breakthrough Battery Life, Pro Fusion Camera System with Center Stage Front Camera; Cosmic Orange",
+                "price": "134900",
+                "original_price": null,
+                "discount": "Up to48,000.00 off",
+                "bank_offers": [
+                    "Upto \u20b94,000.00 discount on select Credit Cards"
+                ],
+                "availability": null,
+                "image": "https://m.media-amazon.com/images/I/71JGCn1z1TL._SX466_.jpg"
+            },
+            "scraped_at": "2026-02-10T08:34:29.276822"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/iPhone-Pro-256-Promotion-Breakthrough/dp/B0FQFYYPZF/ref=sr_1_8?dib=eyJ2IjoiMSJ9.4DxdMbwlv3sGMt_xUHlEyuc8ui5ubXxHlmgren588U4tedAePog271k38cByfE4LKlNNecEsYO5A8oW2j5J66udHQL8_iHaSyKDC0wJfZgWr2Gk4FYOvxsrpJObioA_DtLOrNgRQlZ1VmeXVvT_IpJOvWQuP_toDce2qXoBjb3yod8TL8nbezUY3SZM29KZAH340cB_blss-pecmUFHv31StEWhbn5DzDQ791GRIRtA.Vb4tvN8r45cVzPec6aEOYYu4NlJinWcvOwfqrOppdf0&dib_tag=se&keywords=iphone&qid=1770712462&sr=8-8",
+            "product": {
+                "title": "iPhone 17 Pro 256 GB: 15.93 cm (6.3\u2033) Display with Promotion up to 120Hz, A19 Pro Chip, Breakthrough Battery Life, Pro Fusion Camera System with Center Stage Front Camera; Deep Blue",
+                "price": "134900",
+                "original_price": null,
+                "discount": "Up to48,000.00 off",
+                "bank_offers": [
+                    "Upto \u20b94,000.00 discount on select Credit Cards"
+                ],
+                "availability": "In stock",
+                "image": "https://m.media-amazon.com/images/I/618vU2qKXQL._SX385_.jpg"
+            },
+            "scraped_at": "2026-02-10T08:34:29.276822"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/iPhone-16-512-GB-Control/dp/B0DGJ57571/ref=sr_1_5?dib=eyJ2IjoiMSJ9.4DxdMbwlv3sGMt_xUHlEyuc8ui5ubXxHlmgren588U4tedAePog271k38cByfE4LKlNNecEsYO5A8oW2j5J66udHQL8_iHaSyKDC0wJfZgWr2Gk4FYOvxsrpJObioA_DtLOrNgRQlZ1VmeXVvT_IpJOvWQuP_toDce2qXoBjb3yod8TL8nbezUY3SZM29KZAH340cB_blss-pecmUFHv31StEWhbn5DzDQ791GRIRtA.Vb4tvN8r45cVzPec6aEOYYu4NlJinWcvOwfqrOppdf0&dib_tag=se&keywords=iphone&qid=1770712462&sr=8-5",
+            "product": {
+                "title": "iPhone 16 512 GB: 5G Mobile Phone with Camera Control, A18 Chip and a Big Boost in Battery Life. Works with AirPods; Pink",
+                "price": "99900",
+                "original_price": "109900",
+                "discount": "-9%",
+                "bank_offers": [
+                    "Upto \u20b93,000.00 discount on select Credit Cards"
+                ],
+                "availability": "Only 1 left in stock.",
+                "image": "https://m.media-amazon.com/images/I/61zwK7mmLtL._SX342_.jpg"
+            },
+            "scraped_at": "2026-02-10T08:34:29.276822"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/iPhone-Air-256-GB-Promotion/dp/B0FQFTV1NP/ref=sr_1_6?dib=eyJ2IjoiMSJ9.4DxdMbwlv3sGMt_xUHlEyuc8ui5ubXxHlmgren588U4tedAePog271k38cByfE4LKlNNecEsYO5A8oW2j5J66udHQL8_iHaSyKDC0wJfZgWr2Gk4FYOvxsrpJObioA_DtLOrNgRQlZ1VmeXVvT_IpJOvWQuP_toDce2qXoBjb3yod8TL8nbezUY3SZM29KZAH340cB_blss-pecmUFHv31StEWhbn5DzDQ791GRIRtA.Vb4tvN8r45cVzPec6aEOYYu4NlJinWcvOwfqrOppdf0&dib_tag=se&keywords=iphone&qid=1770712462&sr=8-6",
+            "product": {
+                "title": "iPhone Air 256 GB: Thinnest iPhone Ever, 16.63 cm (6.5\u2033) Display with Promotion up to 120Hz, Powerful A19 Pro Chip, Center Stage Front Camera, All-Day Battery Life; Light Gold",
+                "price": "99000",
+                "original_price": "119900",
+                "discount": "-17%",
+                "bank_offers": [
+                    "Upto \u20b94,000.00 discount on select Credit Cards"
+                ],
+                "availability": "In stock",
+                "image": "https://m.media-amazon.com/images/I/614MsdnfBxL._SX569_.jpg"
+            },
+            "scraped_at": "2026-02-10T08:34:29.276822"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/iPhone-17-Pro-Max-Promotion/dp/B0FQF9ZLD7/ref=sr_1_3?dib=eyJ2IjoiMSJ9.4DxdMbwlv3sGMt_xUHlEyuc8ui5ubXxHlmgren588U4tedAePog271k38cByfE4LKlNNecEsYO5A8oW2j5J66udHQL8_iHaSyKDC0wJfZgWr2Gk4FYOvxsrpJObioA_DtLOrNgRQlZ1VmeXVvT_IpJOvWQuP_toDce2qXoBjb3yod8TL8nbezUY3SZM29KZAH340cB_blss-pecmUFHv31StEWhbn5DzDQ791GRIRtA.Vb4tvN8r45cVzPec6aEOYYu4NlJinWcvOwfqrOppdf0&dib_tag=se&keywords=iphone&qid=1770712462&sr=8-3",
+            "product": {
+                "title": "iPhone 17 Pro Max 2 TB: 17.42 cm (6.9\u2033) Display with Promotion, A19 Pro Chip, Best Battery Life in Any iPhone Ever, Pro Fusion Camera System, Center Stage Front Camera; Silver",
+                "price": "229900",
+                "original_price": null,
+                "discount": "Up to48,000.00 off",
+                "bank_offers": [
+                    "Upto \u20b94,000.00 discount on select Credit Cards"
+                ],
+                "availability": "In stock",
+                "image": "https://m.media-amazon.com/images/I/616-Eh2FbPL._SX466_.jpg"
+            },
+            "scraped_at": "2026-02-10T08:34:29.276822"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/iPhone-16-Pro-Max-TB/dp/B0DGJD75G2/ref=sr_1_4?dib=eyJ2IjoiMSJ9.4DxdMbwlv3sGMt_xUHlEyuc8ui5ubXxHlmgren588U4tedAePog271k38cByfE4LKlNNecEsYO5A8oW2j5J66udHQL8_iHaSyKDC0wJfZgWr2Gk4FYOvxsrpJObioA_DtLOrNgRQlZ1VmeXVvT_IpJOvWQuP_toDce2qXoBjb3yod8TL8nbezUY3SZM29KZAH340cB_blss-pecmUFHv31StEWhbn5DzDQ791GRIRtA.Vb4tvN8r45cVzPec6aEOYYu4NlJinWcvOwfqrOppdf0&dib_tag=se&keywords=iphone&qid=1770712462&sr=8-4",
+            "product": {
+                "title": "iPhone 16 Pro Max 1 TB: 5G Mobile Phone with Camera Control, 4K 120 fps Dolby Vision and a Huge Leap in Battery Life. Works with AirPods; Black Titanium",
+                "price": null,
+                "original_price": null,
+                "discount": "Currently unavailable.",
+                "bank_offers": [],
+                "availability": "Currently unavailable.",
+                "image": "https://m.media-amazon.com/images/I/619oqSJVY5L._SX522_.jpg"
+            },
+            "scraped_at": "2026-02-10T08:34:29.276822"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/Google-Pixel-9A-Porcelain-256/dp/B0FGY7C13L/ref=sr_1_10?dib=eyJ2IjoiMSJ9.4DxdMbwlv3sGMt_xUHlEyuc8ui5ubXxHlmgren588U4tedAePog271k38cByfE4LKlNNecEsYO5A8oW2j5J66udHQL8_iHaSyKDC0wJfZgWr2Gk4FYOvxsrpJObioA_DtLOrNgRQlZ1VmeXVvT_IpJOvWQuP_toDce2qXoBjb3yod8TL8nbezUY3SZM29KZAH340cB_blss-pecmUFHv31StEWhbn5DzDQ791GRIRtA.Vb4tvN8r45cVzPec6aEOYYu4NlJinWcvOwfqrOppdf0&dib_tag=se&keywords=iphone&qid=1770712462&sr=8-10",
+            "product": {
+                "title": "Google Pixel 9A (Porcelain, 256 GB) (8 GB RAM)",
+                "price": "39350",
+                "original_price": "59999",
+                "discount": "-34%",
+                "bank_offers": [
+                    "Upto \u20b91,500.00 discount on select Credit Cards, select Debit Cards"
+                ],
+                "availability": "Only 2 left in stock.",
+                "image": "https://m.media-amazon.com/images/I/71T6fNlZTjL._SX385_.jpg"
+            },
+            "scraped_at": "2026-02-10T08:34:29.276822"
+        }
+    ],
+    "scraped_at": "2026-02-10T08:34:29.276822"
+}
