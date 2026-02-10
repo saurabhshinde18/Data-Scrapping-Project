@@ -5,7 +5,6 @@ import {
   FileSearch,
   LogOut,
   Plus,
-  ShieldCheck,
   UserCircle2,
 } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
@@ -19,9 +18,12 @@ import {
 } from "./components/ui/card";
 import { Input } from "./components/ui/input";
 import ProductGrid from "./components/ProductGrid";
+import AuthSignIn from "./components/AuthSignIn";
+import AuthSignUp from "./components/AuthSignUp";
+import PlanCard from "./components/PlanCard";
 import { COUNTRY_OPTIONS, formatDate } from "./utils";
 
-const plans = [
+const planCatalog = [
   {
     name: "Starter",
     price: "$19",
@@ -51,6 +53,25 @@ const readJson = async (url, options) => {
   const text = await response.text();
   const data = text ? JSON.parse(text) : null;
   return { response, data };
+};
+
+const normalizePlan = (plan) => {
+  const next = { ...plan };
+  if (typeof next.features === "string") {
+    try {
+      const parsed = JSON.parse(next.features);
+      next.features = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      next.features = [];
+    }
+  }
+  if (!Array.isArray(next.features)) {
+    next.features = [];
+  }
+  if (next.description == null) {
+    next.description = "";
+  }
+  return next;
 };
 
 const isBotProtectionItem = (item) => {
@@ -100,11 +121,21 @@ export default function App() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [referralCode, setReferralCode] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState("");
+  const [forgotSuccess, setForgotSuccess] = useState(null);
+  const [resetToken, setResetToken] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetConfirm, setResetConfirm] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState("");
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   const [landingView, setLandingView] = useState("dashboard");
   const [landingPage, setLandingPage] = useState("home");
   const [activeView, setActiveView] = useState("pricing");
-  const [userView, setUserView] = useState("scrape");
   const [platform, setPlatform] = useState("Amazon");
   const [country, setCountry] = useState("India");
   const [query, setQuery] = useState("");
@@ -119,6 +150,41 @@ export default function App() {
     outOfStock: 0,
   });
   const [recentScrapes, setRecentScrapes] = useState([]);
+  const [subscriptionStatus, setSubscriptionStatus] = useState({ active: false });
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const [subscriptionError, setSubscriptionError] = useState("");
+  const [planPricing, setPlanPricing] = useState([]);
+  const [planPricingError, setPlanPricingError] = useState("");
+  const [planPricingLoading, setPlanPricingLoading] = useState(false);
+  const [adminMetricsState, setAdminMetricsState] = useState({
+    total_users: 0,
+    active_subscribers: 0,
+    revenue: 0,
+  });
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [adminPlans, setAdminPlans] = useState([]);
+  const [planEditOpen, setPlanEditOpen] = useState(false);
+  const [planEdit, setPlanEdit] = useState(null);
+  const [planEditAmount, setPlanEditAmount] = useState("");
+  const [planEditCurrency, setPlanEditCurrency] = useState("INR");
+  const [planEditDuration, setPlanEditDuration] = useState("");
+  const [planEditDescription, setPlanEditDescription] = useState("");
+  const [planEditFeaturesText, setPlanEditFeaturesText] = useState("");
+  const [planEditLoading, setPlanEditLoading] = useState(false);
+  const [planEditError, setPlanEditError] = useState("");
+  const [adminInvites, setAdminInvites] = useState([]);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const [inviteUsername, setInviteUsername] = useState("");
+  const [invitePhoneCode, setInvitePhoneCode] = useState("+91");
+  const [invitePhoneNumber, setInvitePhoneNumber] = useState("");
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteError, setInviteError] = useState("");
+  const [inviteSuccess, setInviteSuccess] = useState(null);
+  const [inviteCopyStatus, setInviteCopyStatus] = useState("");
+  const [inviteDeleteLoadingId, setInviteDeleteLoadingId] = useState(null);
+  const [inviteDeleteError, setInviteDeleteError] = useState("");
 
   const cleanedResults = useMemo(
     () =>
@@ -137,6 +203,66 @@ export default function App() {
     ).length;
     return { total, inStock };
   }, [cleanedResults]);
+
+  const pricingByName = useMemo(() => {
+    const map = new Map();
+    planPricing.forEach((plan) => {
+      map.set(plan.name, plan);
+    });
+    return map;
+  }, [planPricing]);
+
+  const mergedPlans = useMemo(
+    () =>
+      planCatalog.map((plan) => {
+        const pricing = pricingByName.get(plan.name);
+        if (!pricing) return plan;
+        const displayPrice =
+          pricing.amount === 0
+            ? "Custom"
+            : `${pricing.currency} ${Math.round(pricing.amount).toLocaleString()}`;
+        return {
+          ...plan,
+          price: displayPrice,
+          amount: pricing.amount,
+          currency: pricing.currency,
+          duration_days: pricing.duration_days,
+          description: pricing.description || plan.description,
+          features: pricing.features?.length ? pricing.features : plan.features,
+        };
+      }),
+    [pricingByName]
+  );
+
+  const adminPricingByName = useMemo(() => {
+    const map = new Map();
+    adminPlans.forEach((plan) => {
+      map.set(plan.name, plan);
+    });
+    return map;
+  }, [adminPlans]);
+
+  const adminMergedPlans = useMemo(
+    () =>
+      planCatalog.map((plan) => {
+        const pricing = adminPricingByName.get(plan.name) || pricingByName.get(plan.name);
+        if (!pricing) return plan;
+        const displayPrice =
+          pricing.amount === 0
+            ? "Custom"
+            : `${pricing.currency} ${Math.round(pricing.amount).toLocaleString()}`;
+        return {
+          ...plan,
+          price: displayPrice,
+          amount: pricing.amount,
+          currency: pricing.currency,
+          duration_days: pricing.duration_days,
+          description: pricing.description || plan.description,
+          features: pricing.features?.length ? pricing.features : plan.features,
+        };
+      }),
+    [adminPricingByName, pricingByName]
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("session_token");
@@ -192,6 +318,30 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      setResetToken(token);
+      setLandingPage("reset");
+      setLandingView("reset");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.role === "admin") {
+      fetchAdminData();
+      return;
+    }
+    fetchSubscriptionStatus();
+  }, [user]);
+
+  useEffect(() => {
+    fetchPlanPricing();
+  }, []);
+
   const persistHistory = (batch) => {
     if (typeof window === "undefined") return;
     try {
@@ -202,6 +352,71 @@ export default function App() {
     } catch {
       localStorage.setItem("scrape_history", JSON.stringify([batch]));
       setRecentScrapes([batch]);
+    }
+  };
+
+  const fetchSubscriptionStatus = async () => {
+    const token = localStorage.getItem("session_token");
+    if (!token) {
+      setSubscriptionStatus({ active: false });
+      return;
+    }
+    const { response, data } = await readJson(`${API_BASE.replace("/product", "")}/subscriptions/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (response.ok && data) {
+      setSubscriptionStatus(data);
+    } else {
+      setSubscriptionStatus({ active: false });
+    }
+  };
+
+  const fetchPlanPricing = async () => {
+    setPlanPricingError("");
+    setPlanPricingLoading(true);
+    try {
+      const { response, data } = await readJson(
+        `${API_BASE.replace("/product", "")}/subscriptions/plans`
+      );
+      if (!response.ok || !Array.isArray(data)) {
+        throw new Error("Failed to load plan pricing.");
+      }
+      setPlanPricing(data.map(normalizePlan));
+    } catch (err) {
+      setPlanPricingError(err instanceof Error ? err.message : "Failed to load plan pricing.");
+    } finally {
+      setPlanPricingLoading(false);
+    }
+  };
+
+  const fetchAdminData = async () => {
+    const token = localStorage.getItem("session_token");
+    if (!token) return;
+    const [metricsRes, usersRes, invitesRes, plansRes] = await Promise.all([
+      readJson(`${API_BASE.replace("/product", "")}/admin/metrics`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      readJson(`${API_BASE.replace("/product", "")}/admin/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      readJson(`${API_BASE.replace("/product", "")}/admin/invites`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      readJson(`${API_BASE.replace("/product", "")}/admin/plans`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    ]);
+    if (metricsRes.response.ok && metricsRes.data) {
+      setAdminMetricsState(metricsRes.data);
+    }
+    if (usersRes.response.ok && Array.isArray(usersRes.data)) {
+      setAdminUsers(usersRes.data);
+    }
+    if (invitesRes.response.ok && Array.isArray(invitesRes.data)) {
+      setAdminInvites(invitesRes.data);
+    }
+    if (plansRes.response.ok && Array.isArray(plansRes.data)) {
+      setAdminPlans(plansRes.data.map(normalizePlan));
     }
   };
 
@@ -225,10 +440,21 @@ export default function App() {
     setAuthError("");
     if (!email.trim() || !password.trim()) return;
     const endpoint = authView === "signin" ? "login" : "signup";
+    const payload =
+      authView === "signup"
+        ? {
+            email: email.trim(),
+            password,
+            full_name: fullName.trim() || null,
+            username: username.trim() || null,
+            phone_code: phoneCode.trim() || null,
+            phone_number: phoneNumber.trim() || null,
+          }
+        : { email: email.trim(), password };
     const { response, data } = await readJson(`${AUTH_BASE}/${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.trim(), password }),
+      body: JSON.stringify(payload),
     });
     if (!response.ok) {
       setAuthError(data?.detail || "Authentication failed.");
@@ -237,6 +463,87 @@ export default function App() {
     if (data?.token && data?.user) {
       localStorage.setItem("session_token", data.token);
       setUser(data.user);
+      setLandingView("dashboard");
+      setLandingPage("dashboard");
+    }
+  };
+
+  const handleForgotOpen = () => {
+    setForgotEmail(email || "");
+    setForgotError("");
+    setForgotSuccess(null);
+    setForgotOpen(true);
+  };
+
+  const handleForgotClose = () => {
+    setForgotOpen(false);
+    setForgotError("");
+    setForgotSuccess(null);
+  };
+
+  const handleForgotSubmit = async () => {
+    setForgotError("");
+    setForgotSuccess(null);
+    if (!forgotEmail.trim()) {
+      setForgotError("Email is required.");
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      const { response, data } = await readJson(`${AUTH_BASE}/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      });
+      if (!response.ok) {
+        throw new Error(data?.detail || "Reset failed.");
+      }
+      setForgotSuccess({ email: forgotEmail.trim() });
+    } catch (err) {
+      setForgotError(err instanceof Error ? err.message : "Reset failed.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetSubmit = async () => {
+    setResetError("");
+    setResetSuccess(false);
+    if (!resetToken) {
+      setResetError("Missing reset token.");
+      return;
+    }
+    if (!resetPassword.trim()) {
+      setResetError("Enter a new password.");
+      return;
+    }
+    if (resetPassword !== resetConfirm) {
+      setResetError("Passwords do not match.");
+      return;
+    }
+    setResetLoading(true);
+    try {
+      const { response, data } = await readJson(`${AUTH_BASE}/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: resetToken,
+          new_password: resetPassword,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(data?.detail || "Reset failed.");
+      }
+      setResetSuccess(true);
+      setResetPassword("");
+      setResetConfirm("");
+      window.setTimeout(() => {
+        setLandingPage("signin");
+      }, 1500);
+    } catch (err) {
+      setResetError(err instanceof Error ? err.message : "Reset failed.");
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -245,19 +552,374 @@ export default function App() {
     localStorage.removeItem("session_token");
     setEmail("");
     setPassword("");
+    setSubscriptionStatus({ active: false });
+    setAdminUsers([]);
+    setAdminInvites([]);
+    setAdminPlans([]);
+    setAdminMetricsState({
+      total_users: 0,
+      active_subscribers: 0,
+      revenue: 0,
+    });
+  };
+
+  const resetInviteForm = () => {
+    setInviteEmail("");
+    setInviteName("");
+    setInviteUsername("");
+    setInvitePhoneCode("+91");
+    setInvitePhoneNumber("");
+    setInviteError("");
+    setInviteSuccess(null);
+    setInviteCopyStatus("");
+  };
+
+  const handleInviteOpen = () => {
+    resetInviteForm();
+    setInviteOpen(true);
+  };
+
+  const handleInviteClose = () => {
+    setInviteOpen(false);
+    resetInviteForm();
+  };
+
+  const handleInviteCopy = async () => {
+    if (!inviteSuccess?.email || !inviteSuccess?.temp_password) return;
+    try {
+      await navigator.clipboard.writeText(
+        `Email: ${inviteSuccess.email}\nPassword: ${inviteSuccess.temp_password}`
+      );
+      setInviteCopyStatus("Copied to clipboard.");
+    } catch {
+      setInviteCopyStatus("Copy failed. Please copy manually.");
+    }
+  };
+
+  const handleCreateInvite = async () => {
+    setInviteError("");
+    setInviteSuccess(null);
+    setInviteCopyStatus("");
+    if (!inviteEmail.trim()) {
+      setInviteError("Email is required.");
+      return;
+    }
+    setInviteLoading(true);
+    try {
+      const token = localStorage.getItem("session_token");
+      if (!token) {
+        throw new Error("Missing session. Please sign in again.");
+      }
+      const { response, data } = await readJson(
+        `${API_BASE.replace("/product", "")}/admin/invite`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            email: inviteEmail.trim(),
+            full_name: inviteName.trim() || null,
+            username: inviteUsername.trim() || null,
+            phone_code: invitePhoneCode.trim() || null,
+            phone_number: invitePhoneNumber.trim() || null,
+          }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(data?.detail || "Invite failed.");
+      }
+      setInviteSuccess({
+        email: data.email,
+        temp_password: data.temp_password,
+      });
+      setInviteEmail("");
+      setInviteName("");
+      setInviteUsername("");
+      setInvitePhoneNumber("");
+      await fetchAdminData();
+    } catch (err) {
+      setInviteError(err instanceof Error ? err.message : "Invite failed.");
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  const resetPlanEdit = () => {
+    setPlanEdit(null);
+    setPlanEditAmount("");
+    setPlanEditCurrency("INR");
+    setPlanEditDuration("");
+    setPlanEditDescription("");
+    setPlanEditFeaturesText("");
+    setPlanEditError("");
+  };
+
+  const handlePlanEditOpen = (plan) => {
+    if (!plan) return;
+    setPlanEdit(plan);
+    setPlanEditAmount(
+      typeof plan.amount === "number" ? String(plan.amount) : ""
+    );
+    setPlanEditCurrency(plan.currency || "INR");
+    setPlanEditDuration(
+      typeof plan.duration_days === "number" ? String(plan.duration_days) : ""
+    );
+    setPlanEditDescription(plan.description || "");
+    setPlanEditFeaturesText(
+      Array.isArray(plan.features) ? plan.features.join("\n") : ""
+    );
+    setPlanEditError("");
+    setPlanEditOpen(true);
+  };
+
+  const handlePlanEditClose = () => {
+    setPlanEditOpen(false);
+    resetPlanEdit();
+  };
+
+  const handlePlanSave = async () => {
+    if (!planEdit?.name) return;
+    setPlanEditError("");
+    setPlanEditLoading(true);
+    try {
+      const token = localStorage.getItem("session_token");
+      if (!token) {
+        throw new Error("Missing session. Please sign in again.");
+      }
+      const amount = planEditAmount.trim();
+      const duration = planEditDuration.trim();
+      const features = planEditFeaturesText
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+      const payload = {
+        amount: amount ? Number(amount) : null,
+        currency: planEditCurrency.trim() || null,
+        duration_days: duration ? Number(duration) : null,
+        description: planEditDescription.trim() || null,
+        features,
+      };
+      if (Number.isNaN(payload.amount)) {
+        throw new Error("Amount must be a number.");
+      }
+      if (Number.isNaN(payload.duration_days)) {
+        throw new Error("Duration must be a number.");
+      }
+      const { response, data } = await readJson(
+        `${API_BASE.replace("/product", "")}/admin/plans/${encodeURIComponent(
+          planEdit.name
+        )}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(data?.detail || "Update failed.");
+      }
+      const normalized = normalizePlan(data);
+      setAdminPlans((prev) => {
+        const exists = prev.some((plan) => plan.name === normalized.name);
+        if (!exists) return [...prev, normalized];
+        return prev.map((plan) => (plan.name === normalized.name ? normalized : plan));
+      });
+      setPlanPricing((prev) => {
+        const exists = prev.some((plan) => plan.name === normalized.name);
+        if (!exists) return [...prev, normalized];
+        return prev.map((plan) => (plan.name === normalized.name ? normalized : plan));
+      });
+      await fetchPlanPricing();
+      await fetchAdminData();
+      setPlanEditOpen(false);
+      resetPlanEdit();
+    } catch (err) {
+      setPlanEditError(err instanceof Error ? err.message : "Update failed.");
+    } finally {
+      setPlanEditLoading(false);
+    }
+  };
+
+  const toCsv = (rows) => {
+    if (!Array.isArray(rows) || rows.length === 0) return "";
+    const headers = Array.from(
+      rows.reduce((set, row) => {
+        Object.keys(row || {}).forEach((key) => set.add(key));
+        return set;
+      }, new Set())
+    );
+    const escapeCell = (value) => {
+      if (value == null) return "";
+      if (Array.isArray(value)) return `"${value.join("; ").replace(/"/g, '""')}"`;
+      const text = String(value);
+      if (text.includes('"') || text.includes(",") || text.includes("\n")) {
+        return `"${text.replace(/"/g, '""')}"`;
+      }
+      return text;
+    };
+    const lines = [
+      headers.join(","),
+      ...rows.map((row) => headers.map((h) => escapeCell(row?.[h])).join(",")),
+    ];
+    return lines.join("\n");
+  };
+
+  const downloadCsv = (filename, rows) => {
+    const csv = toCsv(rows);
+    if (!csv) return;
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const escapeHtml = (value) => {
+    if (value == null) return "";
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  };
+
+  const toHtmlTable = (title, rows) => {
+    const safeRows = Array.isArray(rows) ? rows : [];
+    if (safeRows.length === 0) {
+      return `<h3>${escapeHtml(title)}</h3><p>No data</p>`;
+    }
+    const headers = Array.from(
+      safeRows.reduce((set, row) => {
+        Object.keys(row || {}).forEach((key) => set.add(key));
+        return set;
+      }, new Set())
+    );
+    const thead = headers
+      .map((h) => `<th>${escapeHtml(h)}</th>`)
+      .join("");
+    const tbody = safeRows
+      .map((row) => {
+        const cells = headers
+          .map((h) => {
+            const value = row?.[h];
+            if (Array.isArray(value)) {
+              return `<td>${escapeHtml(value.join("; "))}</td>`;
+            }
+            return `<td>${escapeHtml(value)}</td>`;
+          })
+          .join("");
+        return `<tr>${cells}</tr>`;
+      })
+      .join("");
+    return `
+      <h3>${escapeHtml(title)}</h3>
+      <table border="1">
+        <thead><tr>${thead}</tr></thead>
+        <tbody>${tbody}</tbody>
+      </table>
+    `;
+  };
+
+  const downloadExcel = (filename, sections) => {
+    const content = sections.join(
+      `<div style="height:16px;"></div>`
+    );
+    const html = `
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <style>
+            body { font-family: Arial, sans-serif; font-size: 12px; }
+            table { border-collapse: collapse; width: 100%; }
+            th, td { padding: 6px 8px; }
+            th { background: #f1f5f9; text-align: left; }
+          </style>
+        </head>
+        <body>${content}</body>
+      </html>
+    `;
+    const blob = new Blob([html], {
+      type: "application/vnd.ms-excel;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExport = () => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    const sections = [
+      toHtmlTable("Metrics", [adminMetricsState]),
+      toHtmlTable("Users", adminUsers),
+      toHtmlTable("Invited Admins", adminInvites),
+      toHtmlTable("Plans", adminPlans),
+    ];
+    downloadExcel(`dashboard-export-${stamp}.xls`, sections);
+  };
+
+  const handleDeleteInvite = async (adminId) => {
+    if (!adminId) return;
+    const ok = window.confirm("Delete this invited admin?");
+    if (!ok) return;
+    setInviteDeleteError("");
+    setInviteDeleteLoadingId(adminId);
+    try {
+      const token = localStorage.getItem("session_token");
+      if (!token) {
+        throw new Error("Missing session. Please sign in again.");
+      }
+      const { response, data } = await readJson(
+        `${API_BASE.replace("/product", "")}/admin/invites/${adminId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!response.ok) {
+        throw new Error(data?.detail || "Delete failed.");
+      }
+      setAdminInvites((prev) => prev.filter((invite) => invite.id !== adminId));
+    } catch (err) {
+      setInviteDeleteError(err instanceof Error ? err.message : "Delete failed.");
+    } finally {
+      setInviteDeleteLoadingId(null);
+    }
   };
 
   const handleSearch = async () => {
     setError("");
+    if (!subscriptionStatus.active && user?.role !== "admin") {
+      setError("Active subscription required to scrape products.");
+      return;
+    }
     if (!query.trim()) {
       setError("Please enter a product name.");
       return;
     }
     setIsSearching(true);
     try {
+      const token = localStorage.getItem("session_token");
       const { response, data } = await readJson(`${API_BASE}/search`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           query: query.trim(),
           platform,
@@ -290,15 +952,23 @@ export default function App() {
 
   const handleLandingScrape = async () => {
     setError("");
+    if (!subscriptionStatus.active && user?.role !== "admin") {
+      setError("Active subscription required to scrape products.");
+      return;
+    }
     if (!scrapeName.trim()) {
       setError("Enter a product name.");
       return;
     }
     setIsSearching(true);
     try {
+      const token = localStorage.getItem("session_token");
       const { response, data } = await readJson(`${API_BASE}/search`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           query: scrapeName.trim(),
           platform,
@@ -334,14 +1004,81 @@ export default function App() {
     }
   };
 
+  const handleSubscribe = async (planName) => {
+    setSubscriptionError("");
+    setSubscriptionLoading(true);
+    const token = localStorage.getItem("session_token");
+    if (!token) {
+      setSubscriptionError("Please sign in to subscribe.");
+      setSubscriptionLoading(false);
+      return;
+    }
+    try {
+      const { response, data } = await readJson(
+        `${API_BASE.replace("/product", "")}/subscriptions/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ plan_name: planName }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(data?.detail || "Subscription request failed.");
+      }
+      if (!window.Razorpay) {
+        throw new Error("Razorpay SDK not loaded.");
+      }
+      const options = {
+        key: data.razorpay_key_id,
+        subscription_id: data.razorpay_subscription_id,
+        name: "Data Scrape",
+        description: `${planName} Plan`,
+        handler: async (res) => {
+          const verify = await readJson(
+            `${API_BASE.replace("/product", "")}/subscriptions/verify`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                razorpay_payment_id: res.razorpay_payment_id,
+                razorpay_subscription_id: res.razorpay_subscription_id,
+                razorpay_signature: res.razorpay_signature,
+              }),
+            }
+          );
+          if (!verify.response.ok) {
+            setSubscriptionError(
+              verify.data?.detail || "Subscription verification failed."
+            );
+            return;
+          }
+          await fetchSubscriptionStatus();
+          setLandingPage("dashboard");
+        },
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      setSubscriptionError(err instanceof Error ? err.message : "Subscription failed.");
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="admin-shell">
         <div className="admin-panel">
           <Card className="admin-card">
             <CardHeader>
-              <CardTitle className="text-white">Loading session...</CardTitle>
-              <CardDescription className="text-slate-300">
+              <CardTitle className="text-slate-900">Loading session...</CardTitle>
+              <CardDescription className="text-slate-600">
                 Checking your access.
               </CardDescription>
             </CardHeader>
@@ -351,305 +1088,579 @@ export default function App() {
     );
   }
 
-  if (!user) {
-    if (landingPage === "signin") {
-      return (
-        <div className="min-h-screen bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 px-6 py-10 text-slate-900">
-          <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl items-center justify-center">
-            <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
-              <button
-                type="button"
-                className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400"
-                onClick={() => setLandingPage("home")}
-              >
-                Back to Home
-              </button>
-              <h1 className="mt-4 text-3xl font-semibold text-slate-900">
-                Welcome Back
-              </h1>
-              <p className="mt-2 text-sm text-slate-500">
-                Sign in to your account
-              </p>
-              <div className="mt-6 grid gap-4">
-                <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                  Email / Username
-                  <Input
-                    className="mt-2 bg-white"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="Enter your email or username"
-                  />
-                </label>
-                <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                  Password
-                  <div className="relative mt-2">
+  if (user && user.role === "admin") {
+    return (
+      <div className="admin-shell">
+        <div className="admin-panel">
+          {inviteOpen ? (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 py-10">
+              <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-slate-900">Create invite</h2>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Generate a temporary password for a new user.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-sm font-semibold text-slate-500 hover:text-slate-700"
+                    onClick={handleInviteClose}
+                  >
+                    Close
+                  </button>
+                </div>
+
+                <div className="mt-6 grid gap-4">
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                      Email
+                    </label>
                     <Input
-                      className="bg-white pr-10"
-                      type="password"
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      placeholder="Enter your password"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      placeholder="name@company.com"
+                      className="mt-2"
                     />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                      ◉
-                    </span>
                   </div>
-                </label>
-                <button
-                  type="button"
-                  className="text-left text-sm font-medium text-indigo-600"
-                >
-                  Forgot password?
-                </button>
-              </div>
-              <Button
-                onClick={handleAuth}
-                className="mt-6 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500"
-              >
-                Sign In
-              </Button>
-              {authError ? (
-                <div className="mt-3 text-center text-xs text-rose-500">
-                  {authError}
-                </div>
-              ) : null}
-              <div className="mt-6 text-center text-sm text-slate-500">
-                Don&apos;t have an account?{" "}
-                <button
-                  type="button"
-                  className="font-semibold text-indigo-600"
-                  onClick={() => {
-                    setAuthView("signup");
-                    setLandingPage("signup");
-                  }}
-                >
-                  Create one now
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (landingPage === "signup") {
-      return (
-        <div className="min-h-screen bg-slate-100 px-6 py-10 text-slate-900">
-          <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-5xl items-start justify-center">
-            <div className="w-full max-w-3xl rounded-2xl bg-white p-8 shadow-2xl">
-              <div className="flex items-center justify-between gap-4">
-                <button
-                  type="button"
-                  className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400"
-                  onClick={() => setLandingPage("home")}
-                >
-                  Back to Home
-                </button>
-                <button
-                  type="button"
-                  className="text-sm font-semibold text-indigo-600"
-                  onClick={() => {
-                    setAuthView("signin");
-                    setLandingPage("signin");
-                  }}
-                >
-                  Already have an account? Sign in
-                </button>
-              </div>
-              <h1 className="mt-4 text-3xl font-semibold text-slate-900">
-                Create Account
-              </h1>
-              <p className="mt-2 text-sm text-slate-500">
-                Join us today - it&apos;s quick and easy
-              </p>
-
-              <div className="mt-6 space-y-6">
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    Personal Information
-                  </p>
-                  <div className="mt-3 grid gap-4 md:grid-cols-2">
-                    <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                      Full Name
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                        Full Name
+                      </label>
                       <Input
-                        className="mt-2 bg-white"
-                        value={fullName}
-                        onChange={(event) => setFullName(event.target.value)}
-                        placeholder="John Doe"
+                        value={inviteName}
+                        onChange={(e) => setInviteName(e.target.value)}
+                        placeholder="Full name"
+                        className="mt-2"
                       />
-                    </label>
-                    <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                      Username
+                    </div>
+                    <div>
+                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                        Username
+                      </label>
                       <Input
-                        className="mt-2 bg-white"
-                        value={username}
-                        onChange={(event) => setUsername(event.target.value)}
-                        placeholder="johndoe"
+                        value={inviteUsername}
+                        onChange={(e) => setInviteUsername(e.target.value)}
+                        placeholder="username"
+                        className="mt-2"
                       />
-                    </label>
+                    </div>
                   </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    Contact Information
-                  </p>
-                  <div className="mt-3 grid gap-4 md:grid-cols-2">
-                    <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                      Email Address
+                  <div className="grid gap-4 md:grid-cols-[140px_1fr]">
+                    <div>
+                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                        Phone Code
+                      </label>
                       <Input
-                        className="mt-2 bg-white"
-                        value={email}
-                        onChange={(event) => setEmail(event.target.value)}
-                        placeholder="john@example.com"
+                        value={invitePhoneCode}
+                        onChange={(e) => setInvitePhoneCode(e.target.value)}
+                        placeholder="+91"
+                        className="mt-2"
                       />
-                    </label>
-                    <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                      Phone Number
-                      <div className="mt-2 flex gap-2">
-                        <select
-                          value={phoneCode}
-                          onChange={(event) => setPhoneCode(event.target.value)}
-                          className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
-                        >
-                          <option value="+91">+91</option>
-                          <option value="+1">+1</option>
-                          <option value="+44">+44</option>
-                        </select>
-                        <Input
-                          className="bg-white"
-                          value={phoneNumber}
-                          onChange={(event) => setPhoneNumber(event.target.value)}
-                          placeholder="1234567890"
-                        />
+                    </div>
+                    <div>
+                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                        Phone Number
+                      </label>
+                      <Input
+                        value={invitePhoneNumber}
+                        onChange={(e) => setInvitePhoneNumber(e.target.value)}
+                        placeholder="9876543210"
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+
+                  {inviteError ? (
+                    <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                      {inviteError}
+                    </div>
+                  ) : null}
+
+                  {inviteSuccess ? (
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                      <div className="font-semibold">Invite created</div>
+                      <div className="mt-2 text-xs uppercase tracking-[0.2em] text-emerald-500">
+                        Temporary Credentials
                       </div>
-                    </label>
-                  </div>
+                      <div className="mt-2 text-sm text-emerald-700">
+                        Email: {inviteSuccess.email}
+                      </div>
+                      <div className="text-sm text-emerald-700">
+                        Password: {inviteSuccess.temp_password}
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="border-emerald-200 bg-white text-emerald-700"
+                          onClick={handleInviteCopy}
+                        >
+                          Copy credentials
+                        </Button>
+                        {inviteCopyStatus ? (
+                          <span className="text-xs text-emerald-600">{inviteCopyStatus}</span>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">Security</p>
-                  <label className="mt-3 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                    Password
-                    <Input
-                      className="mt-2 bg-white"
-                      type="password"
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      placeholder="Enter your password"
-                    />
-                  </label>
+                <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-slate-200 bg-white text-slate-700"
+                    onClick={handleInviteClose}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    className="bg-indigo-600 text-white hover:bg-indigo-500"
+                    onClick={handleCreateInvite}
+                    disabled={inviteLoading}
+                  >
+                    {inviteLoading ? "Creating..." : "Create invite"}
+                  </Button>
                 </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    Referral (Optional)
-                  </p>
-                  <label className="mt-3 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                    Referral Code
-                    <Input
-                      className="mt-2 bg-white"
-                      value={referralCode}
-                      onChange={(event) => setReferralCode(event.target.value)}
-                      placeholder="Enter referral code"
-                    />
-                  </label>
-                </div>
-
-                <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-600">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4"
-                    checked={agreeTerms}
-                    onChange={(event) => setAgreeTerms(event.target.checked)}
-                  />
-                  I agree to the Terms and Conditions and Privacy Policy
-                </label>
               </div>
+            </div>
+          ) : null}
+          {planEditOpen ? (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 py-10">
+              <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-slate-900">
+                      Edit pricing
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Update pricing details for {planEdit?.name}.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-sm font-semibold text-slate-500 hover:text-slate-700"
+                    onClick={handlePlanEditClose}
+                  >
+                    Close
+                  </button>
+                </div>
 
-              <Button
-                onClick={() => {
-                  if (!agreeTerms) {
-                    setAuthError("Please agree to the terms to continue.");
-                    return;
-                  }
-                  setAuthView("signup");
-                  handleAuth();
-                }}
-                className="mt-6 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500"
-              >
-                Create Account
-              </Button>
-              {authError ? (
-                <div className="mt-3 text-center text-xs text-rose-500">
-                  {authError}
+                <div className="mt-6 grid gap-4">
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                      Amount
+                    </label>
+                    <Input
+                      value={planEditAmount}
+                      onChange={(e) => setPlanEditAmount(e.target.value)}
+                      placeholder="1999"
+                      className="mt-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                      Description
+                    </label>
+                    <textarea
+                      value={planEditDescription}
+                      onChange={(e) => setPlanEditDescription(e.target.value)}
+                      placeholder="Short plan description"
+                      className="mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                        Currency
+                      </label>
+                      <Input
+                        value={planEditCurrency}
+                        onChange={(e) => setPlanEditCurrency(e.target.value)}
+                        placeholder="INR"
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                        Duration (days)
+                      </label>
+                      <Input
+                        value={planEditDuration}
+                        onChange={(e) => setPlanEditDuration(e.target.value)}
+                        placeholder="30"
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                      Features (one per line)
+                    </label>
+                    <textarea
+                      value={planEditFeaturesText}
+                      onChange={(e) => setPlanEditFeaturesText(e.target.value)}
+                      placeholder="Feature 1&#10;Feature 2"
+                      className="mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                      rows={4}
+                    />
+                  </div>
+                  {planEditError ? (
+                    <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                      {planEditError}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-slate-200 bg-white text-slate-700"
+                    onClick={handlePlanEditClose}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    className="bg-indigo-600 text-white hover:bg-indigo-500"
+                    onClick={handlePlanSave}
+                    disabled={planEditLoading}
+                  >
+                    {planEditLoading ? "Saving..." : "Save changes"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          <header className="admin-header">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <span className="badge">Admin Panel</span>
+                <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                  Pricing Management Console
+                </h1>
+                <p className="mt-2 text-sm text-slate-600">
+                  Manage subscription pricing and plan access for users.
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  className="border-slate-200 bg-white text-slate-700"
+                  onClick={handleExport}
+                >
+                  Export
+                </Button>
+                <Button
+                  className="bg-indigo-600 text-white hover:bg-indigo-500"
+                  onClick={handleInviteOpen}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Invite
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-slate-200 bg-white text-slate-700"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card className="admin-card">
+                <CardHeader>
+                  <CardTitle className="text-slate-900">Total Users</CardTitle>
+                  <CardDescription className="text-slate-600">
+                    Registered accounts in the system.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-3xl font-semibold text-slate-900">
+                  {adminMetricsState.total_users}
+                </CardContent>
+              </Card>
+              <Card className="admin-card">
+                <CardHeader>
+                  <CardTitle className="text-slate-900">Active Subscribers</CardTitle>
+                  <CardDescription className="text-slate-600">
+                    Paid users with active plans.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-3xl font-semibold text-slate-900">
+                  {adminMetricsState.active_subscribers}
+                </CardContent>
+              </Card>
+              <Card className="admin-card">
+                <CardHeader>
+                  <CardTitle className="text-slate-900">Revenue</CardTitle>
+                  <CardDescription className="text-slate-600">
+                    Current billing cycle.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-3xl font-semibold text-slate-900">
+                  INR {adminMetricsState.revenue.toLocaleString()}
+                </CardContent>
+              </Card>
+            </div>
+          </header>
+
+          <section className="admin-layout">
+            <aside className="admin-sidebar">
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                Navigation
+              </p>
+              <nav className="admin-nav">
+                <button
+                  type="button"
+                  data-active={activeView === "dashboard"}
+                  onClick={() => setActiveView("dashboard")}
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  Dashboard
+                </button>
+                <button
+                  type="button"
+                  data-active={activeView === "users"}
+                  onClick={() => setActiveView("users")}
+                >
+                  <UserCircle2 className="h-4 w-4" />
+                  Users
+                </button>
+                <button
+                  type="button"
+                  data-active={activeView === "invites"}
+                  onClick={() => setActiveView("invites")}
+                >
+                  <UserCircle2 className="h-4 w-4" />
+                  Invites
+                </button>
+                <button
+                  type="button"
+                  data-active={activeView === "pricing"}
+                  onClick={() => setActiveView("pricing")}
+                >
+                  <CreditCard className="h-4 w-4" />
+                  Pricing
+                </button>
+              </nav>
+            </aside>
+
+            <div className="space-y-6">
+              {activeView === "pricing" ? (
+                <Card className="admin-card">
+                  <CardHeader>
+                    <CardTitle className="text-slate-900">Plan Pricing</CardTitle>
+                    <CardDescription className="text-slate-600">
+                      Update pricing and feature access for each plan.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      {adminMergedPlans.map((plan) => (
+                        <PlanCard
+                          key={plan.name}
+                          plan={plan}
+                          highlight={plan.highlight}
+                          actionLabel="Edit Pricing"
+                          onAction={() => handlePlanEditOpen(plan)}
+                        />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : null}
+
+              {activeView === "users" ? (
+                <Card className="admin-card">
+                  <CardHeader>
+                    <CardTitle className="text-slate-900">Users</CardTitle>
+                    <CardDescription className="text-slate-600">
+                      Track active plans and remaining subscription days.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {adminUsers.length === 0 ? (
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                        No user records found yet.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="text-left text-xs uppercase tracking-[0.2em] text-slate-400">
+                              <th className="py-2 pr-4">User</th>
+                              <th className="py-2 pr-4">Plan</th>
+                              <th className="py-2 pr-4">Status</th>
+                              <th className="py-2 pr-4">Remaining</th>
+                              <th className="py-2 pr-4">End Date</th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-slate-700">
+                            {adminUsers.map((u) => (
+                              <tr key={u.id} className="border-t border-slate-100">
+                                <td className="py-3 pr-4">
+                                  <div className="font-semibold text-slate-900">
+                                    {u.full_name || u.username || "User"}
+                                  </div>
+                                  <div className="text-xs text-slate-500">{u.email}</div>
+                                </td>
+                                <td className="py-3 pr-4">{u.plan_name || "None"}</td>
+                                <td className="py-3 pr-4 capitalize">{u.status || "none"}</td>
+                                <td className="py-3 pr-4">
+                                  {typeof u.remaining_days === "number"
+                                    ? `${u.remaining_days} days`
+                                    : "-"}
+                                </td>
+                                <td className="py-3 pr-4">
+                                  {u.end_date ? formatDate(u.end_date) : "-"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : null}
+
+              {activeView === "invites" ? (
+                <Card className="admin-card">
+                  <CardHeader>
+                    <CardTitle className="text-slate-900">Admin Invites</CardTitle>
+                    <CardDescription className="text-slate-600">
+                      Invited admin accounts and their status.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {inviteDeleteError ? (
+                      <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                        {inviteDeleteError}
+                      </div>
+                    ) : null}
+                    {adminInvites.length === 0 ? (
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                        No invited admins yet.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="text-left text-xs uppercase tracking-[0.2em] text-slate-400">
+                              <th className="py-2 pr-4">Admin</th>
+                              <th className="py-2 pr-4">Invited By</th>
+                              <th className="py-2 pr-4">Invited At</th>
+                              <th className="py-2 pr-4">Contact</th>
+                              <th className="py-2 pr-4">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-slate-700">
+                            {adminInvites.map((u) => (
+                              <tr key={u.id} className="border-t border-slate-100">
+                                <td className="py-3 pr-4">
+                                  <div className="font-semibold text-slate-900">
+                                    {u.full_name || u.username || "Admin"}
+                                  </div>
+                                  <div className="text-xs text-slate-500">{u.email}</div>
+                                </td>
+                                <td className="py-3 pr-4">{u.invited_by || "-"}</td>
+                                <td className="py-3 pr-4">
+                                  {u.invited_at ? formatDate(u.invited_at) : "-"}
+                                </td>
+                                <td className="py-3 pr-4">
+                                  {u.phone_code && u.phone_number
+                                    ? `${u.phone_code} ${u.phone_number}`
+                                    : "-"}
+                                </td>
+                                <td className="py-3 pr-4">
+                                  <button
+                                    type="button"
+                                    className="delete"
+                                    onClick={() => handleDeleteInvite(u.id)}
+                                    disabled={inviteDeleteLoadingId === u.id}
+                                  >
+                                    {inviteDeleteLoadingId === u.id ? "Deleting..." : "Delete"}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : null}
+
+              {activeView === "dashboard" ? (
+                <div className="grid gap-4 md:grid-cols-3">
+                  <Card className="admin-card">
+                    <CardHeader>
+                      <CardTitle>Total Users</CardTitle>
+                      <CardDescription>Registered accounts in the system.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-3xl font-semibold text-slate-900">
+                      {adminMetricsState.total_users}
+                    </CardContent>
+                  </Card>
+                  <Card className="admin-card">
+                    <CardHeader>
+                      <CardTitle>Monthly Revenue</CardTitle>
+                      <CardDescription>Current billing cycle.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-3xl font-semibold text-slate-900">
+                      INR {adminMetricsState.revenue.toLocaleString()}
+                    </CardContent>
+                  </Card>
+                  <Card className="admin-card">
+                    <CardHeader>
+                      <CardTitle>Active Subscribers</CardTitle>
+                      <CardDescription>Paying users this month.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-3xl font-semibold text-slate-900">
+                      {adminMetricsState.active_subscribers}
+                    </CardContent>
+                  </Card>
                 </div>
               ) : null}
             </div>
-          </div>
+          </section>
         </div>
-      );
-    }
+      </div>
+    );
+  }
 
+  if (user && user.role !== "admin") {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900">
-        <header className="sticky top-0 z-20 w-full border-b border-white/20 bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 text-white shadow-lg">
-          <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
+        <header className="sticky top-0 z-20 w-full border-b border-white/60 bg-white/70 backdrop-blur">
+          <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between px-6 py-5">
             <button
               type="button"
               className="flex items-center gap-3 text-left"
-              onClick={() => handleLandingNav("home")}
+              onClick={() => handleLandingNav("dashboard")}
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/30 bg-white/15 text-lg font-semibold">
-                HH
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-sky-400 text-sm font-semibold text-white">
+                DS
               </div>
               <div>
-                <p className="text-lg font-semibold tracking-tight">Data Scrape</p>
-                <p className="text-xs text-white/70">Market Intelligence Suite</p>
+                <p className="text-lg font-semibold">Data Scrape</p>
+                <p className="text-xs text-slate-500">Product Intelligence</p>
               </div>
             </button>
-            <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-              <button
-                type="button"
-                className="transition hover:text-white/80"
-                onClick={() => handleLandingNav("home")}
-              >
-                Docs
-              </button>
-              <button
-                type="button"
-                className="transition hover:text-white/80"
-                onClick={() => handleLandingNav("subscriptions")}
-              >
-                Plans
-              </button>
-              <button
-                type="button"
-                className="transition hover:text-white/80"
-                onClick={() => handleLandingNav("support")}
-              >
-                Support
-              </button>
-            </nav>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                className="border-white/40 bg-white/15 text-white hover:bg-white/25"
-                onClick={() => {
-                  setAuthView("signin");
-                  setLandingPage("signin");
-                }}
+                className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                onClick={handleLogout}
               >
-                Sign In
-              </Button>
-              <Button
-                className="bg-white text-indigo-700 hover:bg-slate-100"
-                onClick={() => {
-                  setAuthView("signup");
-                  setLandingPage("signup");
-                }}
-              >
-                Register
+                Logout
               </Button>
             </div>
           </div>
@@ -659,35 +1670,21 @@ export default function App() {
           <aside className="h-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-200 bg-gradient-to-b from-indigo-50 via-white to-white px-5 py-6">
               <p className="text-lg font-semibold text-slate-900">Data Scrape</p>
-              <p className="mt-1 text-sm text-slate-500">
-                Quick access to features
-              </p>
+              <p className="mt-1 text-sm text-slate-500">Quick access to features</p>
             </div>
             <nav className="grid gap-2 px-4 py-5 text-sm">
               {[
-                {
-                  label: "Dashboard",
-                  id: "dashboard",
-                  icon: BarChart3,
-                },
-                {
-                  label: "Scrape",
-                  id: "scrape",
-                  icon: FileSearch,
-                },
-                {
-                  label: "Subscriptions",
-                  id: "subscriptions",
-                  icon: CreditCard,
-                },
+                { label: "Dashboard", id: "dashboard", icon: BarChart3 },
+                { label: "Scrape", id: "scrape", icon: FileSearch },
+                { label: "Subscriptions", id: "subscriptions", icon: CreditCard },
                 { label: "History", id: "history", icon: Clock },
               ].map((item) => (
                 <button
                   key={item.id}
                   type="button"
-                  data-active={landingView === item.id}
+                  data-active={landingPage === item.id}
                   className={`flex items-center justify-between rounded-2xl px-4 py-3 text-left font-semibold transition ${
-                    landingView === item.id
+                    landingPage === item.id
                       ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-200/60"
                       : "text-slate-600 hover:bg-slate-100"
                   }`}
@@ -696,16 +1693,14 @@ export default function App() {
                   <span className="flex items-center gap-3">
                     <item.icon
                       className={`h-5 w-5 ${
-                        landingView === item.id
-                          ? "text-white"
-                          : "text-slate-500"
+                        landingPage === item.id ? "text-white" : "text-slate-500"
                       }`}
                     />
                     {item.label}
                   </span>
                   <span
                     className={`text-base ${
-                      landingView === item.id ? "text-white/90" : "text-slate-400"
+                      landingPage === item.id ? "text-white/90" : "text-slate-400"
                     }`}
                   >
                     &gt;
@@ -727,170 +1722,8 @@ export default function App() {
           </aside>
 
           <main className="space-y-10">
-            {landingPage === "home" ? (
-              <>
-                <section
-                  id="home"
-                  className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm"
-                >
-                  <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-indigo-600">
-                    Unified Product Data Platform
-                  </div>
-                  <h1 className="mt-6 text-4xl font-semibold tracking-tight text-slate-900 md:text-5xl">
-                    Scrape Product Data{" "}
-                    <span className="text-indigo-600">At Scale</span>
-                  </h1>
-                  <p className="mt-4 max-w-2xl text-sm text-slate-600 md:text-base">
-                    Monitor prices, availability, and product trends across
-                    marketplaces with clean, structured data delivered fast.
-                  </p>
-                  <div className="mt-6 flex flex-wrap items-center gap-3">
-                    <Button className="bg-indigo-600 hover:bg-indigo-500">
-                      Start Scraping
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                    >
-                      Learn More
-                    </Button>
-                  </div>
-                  <div className="mt-8 grid gap-4 text-sm text-slate-600 md:grid-cols-3">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                      Starter plans for new teams
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                      Verified data sources
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                      Fresh daily snapshots
-                    </div>
-                  </div>
-                </section>
-
-                <section className="grid gap-4 md:grid-cols-3">
-                  {[
-                    { label: "Growing", value: "2.4x", note: "Month-over-month" },
-                    { label: "Active", value: "5,200", note: "Live feeds" },
-                    { label: "High", value: "450+", note: "Partner brands" },
-                  ].map((stat) => (
-                    <div
-                      key={stat.label}
-                      className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-                    >
-                      <p className="text-sm text-slate-500">{stat.label}</p>
-                      <p className="mt-2 text-3xl font-semibold text-slate-900">
-                        {stat.value}
-                      </p>
-                      <p className="mt-2 text-xs text-slate-500">{stat.note}</p>
-                    </div>
-                  ))}
-                </section>
-
-                <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                    Why Data Scrape
-                  </p>
-                  <h2 className="mt-3 text-2xl font-semibold text-slate-900">
-                    Capture pricing, stock, and product signals in minutes.
-                  </h2>
-                  <div className="mt-4 grid gap-3 text-sm text-slate-600">
-                    <div className="flex items-center gap-3">
-                      <FileSearch className="h-4 w-4 text-indigo-500" />
-                      Track products across marketplaces with smart filters.
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <ShieldCheck className="h-4 w-4 text-indigo-500" />
-                      Clean, verified outputs ready for analytics.
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <BarChart3 className="h-4 w-4 text-indigo-500" />
-                      Monitor trends and alerts from a single workspace.
-                    </div>
-                  </div>
-                </section>
-
-                <section className="grid gap-4 md:grid-cols-2">
-                  {[
-                    {
-                      title: "Marketplace Coverage",
-                      text: "Amazon, Flipkart, Reliance, and regional catalogs.",
-                    },
-                    {
-                      title: "Clean Data Pipeline",
-                      text: "Normalized fields and deduped listings.",
-                    },
-                    {
-                      title: "Fast Export",
-                      text: "CSV, JSON, and scheduled webhooks.",
-                    },
-                    {
-                      title: "Compliance Ready",
-                      text: "Throttling, retries, and error tracking.",
-                    },
-                  ].map((feature) => (
-                    <div
-                      key={feature.title}
-                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-                    >
-                      <p className="text-sm font-semibold text-slate-900">
-                        {feature.title}
-                      </p>
-                      <p className="mt-2 text-sm text-slate-600">{feature.text}</p>
-                    </div>
-                  ))}
-                </section>
-
-                <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                    What Teams Say
-                  </p>
-                  <div className="mt-4 grid gap-4 md:grid-cols-3">
-                    {[
-                      "Pricing alerts cut our response time by 70%.",
-                      "Weekly trend reports keep the team aligned.",
-                      "Exports drop directly into our BI stack.",
-                    ].map((quote) => (
-                      <div
-                        key={quote}
-                        className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600"
-                      >
-                        {quote}
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                    Quick FAQ
-                  </p>
-                  <div className="mt-4 grid gap-3 text-sm text-slate-600">
-                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                      How often is data refreshed?
-                      <div className="mt-2 text-xs text-slate-500">
-                        Snapshots run daily with optional hourly refresh.
-                      </div>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                      Can I schedule exports?
-                      <div className="mt-2 text-xs text-slate-500">
-                        Yes, schedule CSV or webhook deliveries.
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              </>
-            ) : null}
-
             {landingPage === "dashboard" ? (
-              <section
-                id="dashboard"
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-              >
+              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
@@ -900,8 +1733,7 @@ export default function App() {
                       Live Scraping Overview
                     </h3>
                     <p className="mt-2 text-sm text-slate-600">
-                      Track pricing changes, availability, and trend signals in
-                      one place.
+                      Track pricing changes, availability, and trend signals in one place.
                     </p>
                   </div>
                   <Button
@@ -911,114 +1743,50 @@ export default function App() {
                     New Scrape Job
                   </Button>
                 </div>
-                <div className="mt-6 grid gap-4 md:grid-cols-4">
-                  {[
-                    { label: "Total Products Scraped", value: "12,480" },
-                    { label: "Available Products", value: "8,932" },
-                    { label: "Out of Stock", value: "1,964" },
-                    { label: "Price Drops (24h)", value: "612" },
-                  ].map((metric) => (
-                    <div
-                      key={metric.label}
-                      className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+                <div className="mt-6 grid gap-4 md:grid-cols-3">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs text-slate-500">Total Products Scraped</p>
+                    <p className="mt-2 text-2xl font-semibold text-slate-900">
+                      {dashboardTotals.total}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs text-slate-500">Available Products</p>
+                    <p className="mt-2 text-2xl font-semibold text-slate-900">
+                      {dashboardTotals.inStock}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs text-slate-500">Out of Stock</p>
+                    <p className="mt-2 text-2xl font-semibold text-slate-900">
+                      {dashboardTotals.outOfStock}
+                    </p>
+                  </div>
+                </div>
+                {!subscriptionStatus.active ? (
+                  <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                    No active subscription. Choose a plan to start scraping.
+                    <Button
+                      variant="outline"
+                      className="ml-3 border-amber-300 text-amber-700 hover:bg-amber-100"
+                      onClick={() => handleLandingNav("subscriptions")}
                     >
-                      <p className="text-xs text-slate-500">{metric.label}</p>
-                      <p className="mt-2 text-2xl font-semibold text-slate-900">
-                        {metric.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-                  <div className="rounded-xl border border-slate-200 bg-white p-4">
-                    <p className="text-sm font-semibold text-slate-900">
-                      Platform Split
-                    </p>
-                    <div className="mt-3 grid gap-2 text-sm text-slate-600">
-                      {[
-                        "Amazon: 52%",
-                        "Flipkart: 31%",
-                        "Reliance: 17%",
-                      ].map((row) => (
-                        <div
-                          key={row}
-                          className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
-                        >
-                          <span>{row}</span>
-                          <span className="text-xs text-slate-500">Share</span>
-                        </div>
-                      ))}
-                    </div>
+                      View Plans
+                    </Button>
                   </div>
-                  <div className="rounded-xl border border-slate-200 bg-white p-4">
-                    <p className="text-sm font-semibold text-slate-900">
-                      Freshness
-                    </p>
-                    <div className="mt-3 grid gap-2 text-sm text-slate-600">
-                      {[
-                        "Updated in last 1h: 1,420",
-                        "Updated in 24h: 7,880",
-                        "Stale (3+ days): 610",
-                      ].map((row) => (
-                        <div
-                          key={row}
-                          className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
-                        >
-                          {row}
-                        </div>
-                      ))}
-                    </div>
+                ) : (
+                  <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                    Active plan: {subscriptionStatus.plan_name || "Plan"}.
+                    {subscriptionStatus.remaining_days !== undefined
+                      ? ` ${subscriptionStatus.remaining_days} days remaining.`
+                      : ""}
                   </div>
-                </div>
-                <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-                  <div className="rounded-xl border border-slate-200 bg-white p-4">
-                    <p className="text-sm font-semibold text-slate-900">
-                      Recent Jobs
-                    </p>
-                    <div className="mt-3 grid gap-2 text-sm text-slate-600">
-                      {[
-                        "Amazon - Phones price scan",
-                        "Flipkart - Laptops availability",
-                        "Reliance - Weekly category crawl",
-                      ].map((job) => (
-                        <div
-                          key={job}
-                          className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
-                        >
-                          <span>{job}</span>
-                          <span className="text-xs text-slate-500">Running</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="rounded-xl border border-slate-200 bg-white p-4">
-                    <p className="text-sm font-semibold text-slate-900">
-                      Alerts
-                    </p>
-                    <div className="mt-3 grid gap-2 text-sm text-slate-600">
-                      {[
-                        "iPhone 15 price drop detected",
-                        "Out-of-stock spike on earbuds",
-                        "New seller appeared in laptops",
-                      ].map((alert) => (
-                        <div
-                          key={alert}
-                          className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
-                        >
-                          {alert}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                )}
               </section>
             ) : null}
 
             {landingPage === "scrape" ? (
-              <section
-                id="scrape"
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-              >
+              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
@@ -1028,8 +1796,7 @@ export default function App() {
                       Scrape Products by Name
                     </h3>
                     <p className="mt-2 text-sm text-slate-600">
-                      Enter a product name and the platform will use the
-                      configured base URLs to collect matching products.
+                      Enter a product name and collect matching products.
                     </p>
                   </div>
                 </div>
@@ -1074,41 +1841,26 @@ export default function App() {
                   <Button
                     onClick={handleLandingScrape}
                     className="bg-indigo-600 hover:bg-indigo-500"
-                    disabled={isSearching}
+                    disabled={isSearching || (!subscriptionStatus.active && user?.role !== "admin")}
                   >
                     {isSearching ? "Scraping..." : "Scrape Products"}
                   </Button>
-                  {error ? (
-                    <span className="text-sm text-rose-500">{error}</span>
-                  ) : null}
+                  {error ? <span className="text-sm text-rose-500">{error}</span> : null}
                 </div>
                 {cleanedResults.length > 0 ? (
                   <div className="mt-6">
-                    <ProductGrid
-                      items={cleanedResults}
-                      onDelete={() => {}}
-                      exchangeRates={null}
-                      isLoading={isSearching}
-                    />
+                    <ProductGrid items={cleanedResults} onDelete={() => {}} exchangeRates={null} isLoading={isSearching} />
                   </div>
                 ) : isSearching ? (
                   <div className="mt-6">
-                    <ProductGrid
-                      items={[]}
-                      onDelete={() => {}}
-                      exchangeRates={null}
-                      isLoading
-                    />
+                    <ProductGrid items={[]} onDelete={() => {}} exchangeRates={null} isLoading />
                   </div>
                 ) : null}
               </section>
             ) : null}
 
             {landingPage === "subscriptions" ? (
-              <section
-                id="subscriptions"
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-              >
+              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
@@ -1121,215 +1873,82 @@ export default function App() {
                       Scale from exploratory scraping to enterprise pipelines.
                     </p>
                   </div>
-                  <Button
-                    variant="outline"
-                    className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                  >
-                    Compare Plans
-                  </Button>
                 </div>
                 <div className="mt-6 grid gap-4 md:grid-cols-3">
-                  {plans.map((plan) => (
-                    <div
-                      key={plan.name}
-                      className={`rounded-xl border p-4 ${
-                        plan.highlight
-                          ? "border-indigo-200 bg-indigo-50"
-                          : "border-slate-200 bg-slate-50"
-                      }`}
-                    >
-                      <p className="text-sm font-semibold text-slate-900">
-                        {plan.name}
-                      </p>
-                      <p className="mt-2 text-2xl font-semibold text-slate-900">
-                        {plan.price}
-                      </p>
-                      <p className="mt-2 text-xs text-slate-500">
-                        {plan.description}
-                      </p>
-                    </div>
-                  ))}
+                  {mergedPlans.map((plan) => {
+                    const isActive =
+                      subscriptionStatus.active &&
+                      subscriptionStatus.plan_name === plan.name;
+                    return (
+                      <PlanCard
+                        key={plan.name}
+                        plan={plan}
+                        highlight={plan.highlight}
+                        actionLabel={isActive ? "Active Plan" : "Subscribe"}
+                        actionDisabled={subscriptionLoading || isActive}
+                        onAction={() => handleSubscribe(plan.name)}
+                        footer={
+                          isActive ? (
+                            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                              Active
+                            </span>
+                          ) : null
+                        }
+                      />
+                    );
+                  })}
                 </div>
-                <div className="mt-6 grid gap-4 md:grid-cols-2">
-                  <div className="rounded-xl border border-slate-200 bg-white p-4">
-                    <p className="text-sm font-semibold text-slate-900">
-                      Included in every plan
-                    </p>
-                    <div className="mt-3 grid gap-2 text-sm text-slate-600">
-                      {[
-                        "Scheduled exports",
-                        "Data normalization",
-                        "Basic alerting",
-                        "Team workspace",
-                      ].map((item) => (
-                        <div
-                          key={item}
-                          className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
-                        >
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="rounded-xl border border-slate-200 bg-white p-4">
-                    <p className="text-sm font-semibold text-slate-900">
-                      Upgrade benefits
-                    </p>
-                    <div className="mt-3 grid gap-2 text-sm text-slate-600">
-                      {[
-                        "Higher request limits",
-                        "Priority refresh jobs",
-                        "Dedicated success manager",
-                        "Custom integrations",
-                      ].map((item) => (
-                        <div
-                          key={item}
-                          className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
-                        >
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                {subscriptionError ? (
+                  <p className="mt-4 text-sm text-rose-500">{subscriptionError}</p>
+                ) : null}
               </section>
             ) : null}
 
             {landingPage === "history" ? (
-              <section
-                id="history"
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-              >
+              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                      History
-                    </p>
-                    <h3 className="mt-2 text-2xl font-semibold text-slate-900">
-                      Recent Scrape Activity
-                    </h3>
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">History</p>
+                    <h3 className="mt-2 text-2xl font-semibold text-slate-900">Recent Scrape Activity</h3>
                     <p className="mt-2 text-sm text-slate-600">
-                      Review completed jobs and export reports when needed.
+                      Review completed jobs and open previous results.
                     </p>
                   </div>
-                  <Button className="bg-indigo-600 hover:bg-indigo-500">
-                    Export Logs
-                  </Button>
                 </div>
-                <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_280px]">
-                  <div className="grid gap-3 text-sm text-slate-600">
-                    {recentScrapes.length === 0 ? (
-                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                        No recent scrapes yet.
-                      </div>
-                    ) : (
-                      recentScrapes.map((group) => (
-                        <div
-                          key={group.key}
-                          className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
-                        >
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                                {group.query === "unknown"
-                                  ? "Search Batch"
-                                  : `Product: ${group.query}`}
-                              </p>
-                              <p className="mt-1 font-semibold text-slate-900">
-                                {group.items.length} products scraped
-                              </p>
-                              <p className="mt-1 text-xs text-slate-500">
-                                Scraped: {formatDate(group.scrapedAt)}
-                              </p>
-                            </div>
-                            <Button
-                              variant="outline"
-                              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                              onClick={() => handleHistoryView(group)}
-                            >
-                              View Result
-                            </Button>
+                <div className="mt-6 grid gap-3 text-sm text-slate-600">
+                  {recentScrapes.length === 0 ? (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                      No recent scrapes yet.
+                    </div>
+                  ) : (
+                    recentScrapes.map((group) => (
+                      <div
+                        key={group.key}
+                        className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                              {group.query === "unknown" ? "Search Batch" : `Product: ${group.query}`}
+                            </p>
+                            <p className="mt-1 font-semibold text-slate-900">
+                              {group.items.length} products scraped
+                            </p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              Scraped: {formatDate(group.scrapedAt)}
+                            </p>
                           </div>
+                          <Button
+                            variant="outline"
+                            className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                            onClick={() => handleHistoryView(group)}
+                          >
+                            View Result
+                          </Button>
                         </div>
-                      ))
-                    )}
-                  </div>
-                  <div className="rounded-xl border border-slate-200 bg-white p-4">
-                    <p className="text-sm font-semibold text-slate-900">
-                      Filters
-                    </p>
-                    <div className="mt-3 grid gap-2 text-sm text-slate-600">
-                      {[
-                        "Platform: All",
-                        "Status: Completed",
-                        "Range: Last 7 days",
-                      ].map((filter) => (
-                        <div
-                          key={filter}
-                          className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
-                        >
-                          {filter}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </section>
-            ) : null}
-
-            {landingPage === "support" ? (
-              <section
-                id="support"
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                      Support
-                    </p>
-                    <h3 className="mt-2 text-2xl font-semibold text-slate-900">
-                      How can we help?
-                    </h3>
-                    <p className="mt-2 text-sm text-slate-600">
-                      Find quick answers or contact the team.
-                    </p>
-                  </div>
-                  <Button className="bg-indigo-600 hover:bg-indigo-500">
-                    Open Ticket
-                  </Button>
-                </div>
-                <div className="mt-6 grid gap-4 md:grid-cols-2">
-                  {[
-                    {
-                      title: "Getting Started",
-                      text: "Setup guides, API access, and first scrape.",
-                    },
-                    {
-                      title: "Billing & Plans",
-                      text: "Invoices, upgrades, and payment questions.",
-                    },
-                    {
-                      title: "Data Quality",
-                      text: "Normalization, dedupe rules, and freshness.",
-                    },
-                    {
-                      title: "Integrations",
-                      text: "Webhooks, exports, and BI connections.",
-                    },
-                  ].map((item) => (
-                    <div
-                      key={item.title}
-                      className="rounded-xl border border-slate-200 bg-slate-50 p-4"
-                    >
-                      <p className="text-sm font-semibold text-slate-900">
-                        {item.title}
-                      </p>
-                      <p className="mt-2 text-sm text-slate-600">{item.text}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
-                  Response time: under 24 hours on business days.
+                      </div>
+                    ))
+                  )}
                 </div>
               </section>
             ) : null}
@@ -1339,385 +1958,356 @@ export default function App() {
     );
   }
 
-  if (user.role === "user") {
+  if (landingPage === "signin") {
     return (
-      <div className="admin-shell">
-        <div className="admin-panel">
-          <header className="admin-header">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <span className="badge">User Panel</span>
-                <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white">
-                  Product Scraping Workspace
-                </h1>
-                <p className="mt-2 text-sm text-slate-300">
-                  Scrape products, manage subscriptions, and review results.
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                className="border-white/20 text-white"
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
-            </div>
-          </header>
-
-          <section className="admin-layout">
-            <aside className="admin-sidebar">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                Navigation
-              </p>
-              <nav className="admin-nav">
-                <button
-                  type="button"
-                  data-active={userView === "scrape"}
-                  onClick={() => setUserView("scrape")}
-                >
-                  <FileSearch className="h-4 w-4" />
-                  Scrape
-                </button>
-                <button
-                  type="button"
-                  data-active={userView === "subscriptions"}
-                  onClick={() => setUserView("subscriptions")}
-                >
-                  <CreditCard className="h-4 w-4" />
-                  Subscriptions
-                </button>
-              </nav>
-            </aside>
-
-            <div className="space-y-6">
-              {userView === "scrape" ? (
-                <Card className="admin-card">
-                  <CardHeader>
-                    <CardTitle className="text-white">Scrape Products</CardTitle>
-                    <CardDescription className="text-slate-300">
-                      Search by product name and fetch the latest results.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid gap-3 md:grid-cols-3">
-                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                        Platform
-                        <select
-                          value={platform}
-                          onChange={(event) => setPlatform(event.target.value)}
-                          className="mt-2 w-full rounded-md border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-white"
-                        >
-                          <option value="Amazon">Amazon</option>
-                          <option value="flipkart">flipkart</option>
-                          <option value="Reliance">Reliance</option>
-                        </select>
-                      </label>
-                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                        Country
-                        <select
-                          value={country}
-                          onChange={(event) => setCountry(event.target.value)}
-                          className="mt-2 w-full rounded-md border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-white"
-                        >
-                          {COUNTRY_OPTIONS.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                        Product Name
-                        <Input
-                          className="mt-2"
-                          value={query}
-                          onChange={(event) => setQuery(event.target.value)}
-                          placeholder="Try iPhone, earbuds, laptops..."
-                        />
-                      </label>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Button
-                        onClick={handleSearch}
-                        className="bg-indigo-500 hover:bg-indigo-400"
-                        disabled={isSearching}
-                      >
-                        {isSearching ? "Fetching..." : "Fetch Products"}
-                      </Button>
-                      {error ? (
-                        <span className="text-sm text-rose-300">{error}</span>
-                      ) : null}
-                    </div>
-                    {cleanedResults.length > 0 ? (
-                      <div className="grid gap-4 md:grid-cols-2">
-                        {cleanedResults.map((item) => (
-                          <Card key={item.source_url} className="admin-card">
-                            <CardContent className="space-y-3">
-                              <div>
-                                <p className="text-sm text-slate-400">
-                                  {item.platform}
-                                </p>
-                                <h3 className="text-lg font-semibold text-white">
-                                  {item.product?.title || "Untitled"}
-                                </h3>
-                              </div>
-                              <div className="text-sm text-slate-300">
-                                Availability: {item.product?.availability || "?"}
-                              </div>
-                              <div className="text-sm text-slate-300">
-                                Price: {item.product?.price || "?"}
-                              </div>
-                              <div className="text-xs text-slate-500 break-all">
-                                {item.source_url}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    ) : null}
-                  </CardContent>
-                </Card>
-              ) : null}
-
-              {userView === "subscriptions" ? (
-                <div className="grid gap-4 lg:grid-cols-3">
-                  {plans.map((plan) => (
-                    <Card key={plan.name} className="admin-card">
-                      <CardHeader>
-                        <CardTitle className="text-white">{plan.name}</CardTitle>
-                        <CardDescription className="text-slate-300">
-                          {plan.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="text-3xl font-semibold text-white">
-                          {plan.price}
-                        </div>
-                        <ul className="space-y-2 text-sm text-slate-200">
-                          {plan.features.map((feature) => (
-                            <li key={feature} className="flex items-center gap-2">
-                              <ShieldCheck className="h-4 w-4 text-emerald-300" />
-                              {feature}
-                            </li>
-                          ))}
-                        </ul>
-                        <Button className="w-full bg-indigo-500 hover:bg-indigo-400">
-                          Choose Plan
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
+      <>
+        {forgotOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 py-10">
+            <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">Reset password</h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    We will generate a temporary password for your account.
+                  </p>
                 </div>
-              ) : null}
+                <button
+                  type="button"
+                  className="text-sm font-semibold text-slate-500 hover:text-slate-700"
+                  onClick={handleForgotClose}
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="mt-6 grid gap-4">
+                <div>
+                  <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                    Email
+                  </label>
+                  <Input
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="name@company.com"
+                    className="mt-2"
+                  />
+                </div>
+                {forgotError ? (
+                  <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    {forgotError}
+                  </div>
+                ) : null}
+                {forgotSuccess ? (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                    <div className="font-semibold">Check your email</div>
+                    <div className="mt-2 text-sm text-emerald-700">
+                      We sent a reset link to {forgotSuccess.email}.
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-slate-200 bg-white text-slate-700"
+                  onClick={handleForgotClose}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  className="bg-indigo-600 text-white hover:bg-indigo-500"
+                  onClick={handleForgotSubmit}
+                  disabled={forgotLoading}
+                >
+                  {forgotLoading ? "Sending..." : "Reset password"}
+                </Button>
+              </div>
             </div>
-          </section>
+          </div>
+        ) : null}
+        <AuthSignIn
+          email={email}
+          password={password}
+          authError={authError}
+          onEmailChange={(event) => setEmail(event.target.value)}
+          onPasswordChange={(event) => setPassword(event.target.value)}
+          onSubmit={() => {
+            setAuthView("signin");
+            handleAuth();
+          }}
+          onGoHome={() => setLandingPage("home")}
+          onGoSignup={() => {
+            setAuthView("signup");
+            setLandingPage("signup");
+          }}
+          onForgot={handleForgotOpen}
+        />
+      </>
+    );
+  }
+
+  if (landingPage === "signup") {
+    return (
+      <AuthSignUp
+        fullName={fullName}
+        username={username}
+        email={email}
+        password={password}
+        phoneCode={phoneCode}
+        phoneNumber={phoneNumber}
+        referralCode={referralCode}
+        agreeTerms={agreeTerms}
+        authError={authError}
+        onFullNameChange={(event) => setFullName(event.target.value)}
+        onUsernameChange={(event) => setUsername(event.target.value)}
+        onEmailChange={(event) => setEmail(event.target.value)}
+        onPasswordChange={(event) => setPassword(event.target.value)}
+        onPhoneCodeChange={(event) => setPhoneCode(event.target.value)}
+        onPhoneNumberChange={(event) => setPhoneNumber(event.target.value)}
+        onReferralChange={(event) => setReferralCode(event.target.value)}
+        onAgreeChange={(event) => setAgreeTerms(event.target.checked)}
+        onSubmit={() => {
+          if (!agreeTerms) {
+            setAuthError("Please agree to the terms to continue.");
+            return;
+          }
+          setAuthView("signup");
+          handleAuth();
+        }}
+        onGoHome={() => setLandingPage("home")}
+        onGoSignin={() => {
+          setAuthView("signin");
+          setLandingPage("signin");
+        }}
+      />
+    );
+  }
+
+  if (landingPage === "reset") {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-indigo-50 px-6 py-10 text-slate-900">
+        <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl items-center justify-center">
+          <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
+            <button
+              type="button"
+              className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400"
+              onClick={() => setLandingPage("signin")}
+            >
+              Back to Sign In
+            </button>
+            <h1 className="mt-4 text-3xl font-semibold text-slate-900">
+              Reset Password
+            </h1>
+            <p className="mt-2 text-sm text-slate-500">
+              Enter a new password for your account.
+            </p>
+            <div className="mt-6 grid gap-4">
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                New Password
+                <Input
+                  className="mt-2 bg-white"
+                  type="password"
+                  value={resetPassword}
+                  onChange={(event) => setResetPassword(event.target.value)}
+                  placeholder="Enter new password"
+                />
+              </label>
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                Confirm Password
+                <Input
+                  className="mt-2 bg-white"
+                  type="password"
+                  value={resetConfirm}
+                  onChange={(event) => setResetConfirm(event.target.value)}
+                  placeholder="Confirm new password"
+                />
+              </label>
+            </div>
+            <Button
+              onClick={handleResetSubmit}
+              className="mt-6 w-full bg-indigo-600 text-white hover:bg-indigo-500"
+              disabled={resetLoading}
+            >
+              {resetLoading ? "Saving..." : "Set new password"}
+            </Button>
+            {resetError ? (
+              <div className="mt-3 text-center text-xs text-rose-500">
+                {resetError}
+              </div>
+            ) : null}
+            {resetSuccess ? (
+              <div className="mt-3 text-center text-xs text-emerald-600">
+                Password updated. You can sign in now.
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="admin-shell">
-      <div className="admin-panel">
-        <header className="admin-header">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <span className="badge">Admin Panel</span>
-              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white">
-                Pricing Management Console
-              </h1>
-              <p className="mt-2 text-sm text-slate-300">
-                Manage subscription pricing and plan access for users.
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" className="border-white/20 text-white">
-                Export
-              </Button>
-              <Button className="bg-indigo-500 hover:bg-indigo-400">
-                <Plus className="mr-2 h-4 w-4" />
-                New Invite
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-indigo-50 text-slate-900">
+      <header className="sticky top-0 z-20 w-full border-b border-white/60 bg-white/70 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between px-6 py-5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-sky-400 text-sm font-semibold text-white">
+            DS
+          </div>
+          <div>
+            <p className="text-lg font-semibold">Data Scrape</p>
+            <p className="text-xs text-slate-500">Product Intelligence</p>
+          </div>
+        </div>
+        <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+          <button
+            type="button"
+            className="transition hover:text-slate-600"
+            onClick={() => scrollToSection("home")}
+          >
+            Home
+          </button>
+          <button
+            type="button"
+            className="transition hover:text-slate-600"
+            onClick={() => scrollToSection("features")}
+          >
+            Features
+          </button>
+          <button
+            type="button"
+            className="transition hover:text-slate-600"
+            onClick={() => scrollToSection("about")}
+          >
+            About
+          </button>
+        </nav>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            onClick={() => {
+              setAuthView("signin");
+              setLandingPage("signin");
+            }}
+          >
+            Sign In
+          </Button>
+          <Button
+            className="bg-indigo-600 text-white hover:bg-indigo-500"
+            onClick={() => {
+              setAuthView("signup");
+              setLandingPage("signup");
+            }}
+          >
+            Sign Up
+          </Button>
+        </div>
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-screen-2xl px-6 pb-16 pt-10">
+        <section id="home" className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div>
+            <p className="text-sm uppercase tracking-[0.3em] text-slate-500">
+              Product Data Platform
+            </p>
+            <h1 className="mt-4 text-4xl font-semibold leading-tight text-slate-900 md:text-5xl">
+              Scrape Products At Scale and Track Pricing Trends Instantly
+            </h1>
+            <p className="mt-4 max-w-xl text-sm text-slate-600 md:text-base">
+              Data Scrape helps teams capture product listings, availability, and
+              price changes from Amazon, Flipkart, and Reliance. Organize outputs,
+              monitor trends, and stay ahead of the market.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button
+                className="bg-indigo-600 text-white hover:bg-indigo-500"
+                onClick={() => {
+                  setAuthView("signup");
+                  setLandingPage("signup");
+                }}
+              >
+                Get Started
               </Button>
               <Button
                 variant="outline"
-                className="border-white/20 text-white"
-                onClick={handleLogout}
+                className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                onClick={() => {
+                  setAuthView("signin");
+                  setLandingPage("signin");
+                }}
               >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
+                Sign In
               </Button>
             </div>
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {[
+                "Daily price monitoring",
+                "Verified data sources",
+                "Exports for BI teams",
+              ].map((item) => (
+                <div key={item} className="rounded-2xl bg-white p-4 shadow-sm">
+                  <p className="text-sm text-slate-700">{item}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card className="admin-card">
-              <CardHeader>
-                <CardTitle className="text-white">Active Users</CardTitle>
-                <CardDescription className="text-slate-300">
-                  Verified accounts in the system.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-3xl font-semibold text-white">128</CardContent>
-            </Card>
-            <Card className="admin-card">
-              <CardHeader>
-                <CardTitle className="text-white">Monthly Searches</CardTitle>
-                <CardDescription className="text-slate-300">
-                  Across all platforms this month.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-3xl font-semibold text-white">42,610</CardContent>
-            </Card>
-            <Card className="admin-card">
-              <CardHeader>
-                <CardTitle className="text-white">Revenue</CardTitle>
-                <CardDescription className="text-slate-300">
-                  Current billing cycle.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-3xl font-semibold text-white">$18,420</CardContent>
-            </Card>
-          </div>
-        </header>
 
-        <section className="admin-layout">
-          <aside className="admin-sidebar">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-              Navigation
-            </p>
-            <nav className="admin-nav">
-              <button
-                type="button"
-                data-active={activeView === "pricing"}
-                onClick={() => setActiveView("pricing")}
-              >
-                <CreditCard className="h-4 w-4" />
-                Pricing
-              </button>
-              <button
-                type="button"
-                data-active={activeView === "subscriptions"}
-                onClick={() => setActiveView("subscriptions")}
-              >
-                <UserCircle2 className="h-4 w-4" />
-                Users
-              </button>
-              <button
-                type="button"
-                data-active={activeView === "dashboard"}
-                onClick={() => setActiveView("dashboard")}
-              >
-                <BarChart3 className="h-4 w-4" />
-                Dashboard
-              </button>
-            </nav>
-          </aside>
-
-          <div className="space-y-6">
-            {activeView === "pricing" ? (
-              <Card className="admin-card">
-                <CardHeader>
-                  <CardTitle className="text-white">Plan Pricing</CardTitle>
-                  <CardDescription className="text-slate-300">
-                    Update pricing and feature access for each plan.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {plans.map((plan) => (
-                      <Card key={plan.name} className="admin-card">
-                        <CardHeader>
-                          <CardTitle className="text-white">{plan.name}</CardTitle>
-                          <CardDescription className="text-slate-300">
-                            {plan.description}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-3 text-sm text-slate-200">
-                          <div className="text-2xl font-semibold text-white">
-                            {plan.price}
-                          </div>
-                          <ul className="space-y-2">
-                            {plan.features.map((feature) => (
-                              <li key={feature} className="flex items-center gap-2">
-                                <ShieldCheck className="h-4 w-4 text-emerald-300" />
-                                {feature}
-                              </li>
-                            ))}
-                          </ul>
-                          <Button className="w-full bg-indigo-500 hover:bg-indigo-400">
-                            Edit Pricing
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    ))}
+          <div className="rounded-3xl bg-gradient-to-br from-indigo-500/10 via-sky-400/10 to-purple-500/10 p-6 shadow-sm">
+            <div className="rounded-2xl bg-white p-4 text-sm shadow-sm">
+              <p className="text-slate-500">Platform Coverage</p>
+              <div className="mt-3 grid gap-2">
+                {["Amazon", "Flipkart", "Reliance"].map((platformName) => (
+                  <div
+                    key={platformName}
+                    className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3"
+                  >
+                    <span className="text-slate-700">{platformName}</span>
+                    <span className="text-xs text-slate-500">Active</span>
                   </div>
-                </CardContent>
-              </Card>
-            ) : null}
-
-            {activeView === "subscriptions" ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                {[
-                  { label: "Total Users", value: "1,240" },
-                  { label: "Active Subscribers", value: "860" },
-                  { label: "Trial Users", value: "140" },
-                  { label: "Churned (30d)", value: "24" },
-                ].map((metric) => (
-                  <Card key={metric.label} className="admin-card">
-                    <CardHeader>
-                      <CardTitle className="text-white">{metric.label}</CardTitle>
-                      <CardDescription className="text-slate-300">
-                        Subscription user overview.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-3xl font-semibold text-white">
-                      {metric.value}
-                    </CardContent>
-                  </Card>
                 ))}
               </div>
-            ) : null}
-
-            {activeView === "dashboard" ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                <Card className="admin-card">
-                  <CardHeader>
-                    <CardTitle className="text-white">Products Scraped</CardTitle>
-                    <CardDescription className="text-slate-300">
-                      Total scraped from storage.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-3xl font-semibold text-white">
-                    {dashboardTotals.total}
-                  </CardContent>
-                </Card>
-                <Card className="admin-card">
-                  <CardHeader>
-                    <CardTitle className="text-white">In Stock</CardTitle>
-                    <CardDescription className="text-slate-300">
-                      Available products from storage.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-3xl font-semibold text-white">
-                    {dashboardTotals.inStock}
-                  </CardContent>
-                </Card>
-                <Card className="admin-card">
-                  <CardHeader>
-                    <CardTitle className="text-white">Out of Stock</CardTitle>
-                    <CardDescription className="text-slate-300">
-                      Products marked out of stock.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-3xl font-semibold text-white">
-                    {dashboardTotals.outOfStock}
-                  </CardContent>
-                </Card>
-              </div>
-            ) : null}
+            </div>
+            <div className="mt-6 rounded-2xl bg-white p-4 text-sm shadow-sm">
+              <p className="text-slate-500">What you get</p>
+              <ul className="mt-3 grid gap-2 text-slate-600">
+                <li>Product name, price, discount, availability</li>
+                <li>Daily snapshots + history</li>
+                <li>Subscription plans for teams</li>
+              </ul>
+            </div>
           </div>
         </section>
-      </div>
+
+        <section id="features" className="mt-14 grid gap-4 md:grid-cols-3">
+          {[
+            "Smart scraping with retry logic",
+            "Clean JSON outputs + CSV exports",
+            "Role-based access for teams",
+          ].map((feature) => (
+            <div key={feature} className="rounded-2xl bg-white p-5 shadow-sm">
+              <p className="text-sm font-semibold text-slate-900">{feature}</p>
+              <p className="mt-2 text-sm text-slate-600">
+                Built for scale and reliable data capture.
+              </p>
+            </div>
+          ))}
+        </section>
+
+        <section id="about" className="mt-14 rounded-3xl bg-white p-6 shadow-sm">
+          <h2 className="text-2xl font-semibold text-slate-900">About</h2>
+          <p className="mt-3 text-sm text-slate-600">
+            We help teams monitor marketplaces and stay ahead with accurate,
+            structured product data.
+          </p>
+        </section>
+
+      </main>
     </div>
   );
 }
+

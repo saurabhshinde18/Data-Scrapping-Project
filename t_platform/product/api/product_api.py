@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -13,6 +13,7 @@ from t_platform.product.utils.file_writer import (
     read_storage_file,
     save_search_results,
 )
+from t_platform.product.api.auth_api import require_active_subscription
 
 router = APIRouter()
 
@@ -41,7 +42,7 @@ class SearchRequest(BaseModel):
     limit: int = 9
 
 @router.post("/scrape")
-def scrape(req: ScrapeRequest):
+async def scrape(req: ScrapeRequest, _: dict = Depends(require_active_subscription)):
     try:
         product = scrape_product(req.platform.lower(), req.url)
     except Exception as e:
@@ -76,7 +77,7 @@ def delete_product(req: DeleteRequest):
 
 
 @router.post("/search")
-def search_by_name(req: SearchRequest):
+async def search_by_name(req: SearchRequest, _: dict = Depends(require_active_subscription)):
     if not req.query.strip():
         raise HTTPException(status_code=400, detail="Query is required.")
 

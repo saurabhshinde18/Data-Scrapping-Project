@@ -1,0 +1,140 @@
+{
+    "platform": "Amazon",
+    "country": "India",
+    "query": "amazon",
+    "results": [
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/All-New-release-smart-speaker-Black/dp/B09B917Z8D/ref=sr_1_6?dib=eyJ2IjoiMSJ9.y82CTWzb7183hfzqMUcWO4o_qsqpXeJuYfYGsCoPfv81E9hIMlHGsBEoUXQ0KTcV7k7xhY7Y9TTd3dsq2ugtFYQVRsxCrNfLDIvFOLJtZ-w-pwfyTM6529VMALAupwSweKuqv57vB3vuw4GZ-DY8aQZfcADyWC-Eyer4wpx7HaExRfZwNoPBn_Jbr52zjyGzv1LBGEUICQHXwiQNOF5ALd0pYnYYCQluxhHGiJDkaxeETFztdcZobso2Y0SYwROEn9IUkb8Uq0KhMPdpZCGnGRT3PQmgQBr550wcjSV3EQc.wbtCwuiIHRS-Jm5xGFS08Kxjiafa1cWj35_tqCJztr8&dib_tag=se&keywords=amazon&qid=1770627931&sr=8-6",
+            "product": {
+                "title": "Amazon Echo Dot (5th Gen) | Smart speaker with vibrant sound, Motion Detection, Temperature Sensor, Alexa and Bluetooth| Black",
+                "price": "5499",
+                "original_price": null,
+                "discount": "()",
+                "bank_offers": [],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T09:05:42.189545"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/Amazon-Pay-eGift-Card-Birthday/dp/B0C58R247K/ref=sr_1_3?dib=eyJ2IjoiMSJ9.y82CTWzb7183hfzqMUcWO4o_qsqpXeJuYfYGsCoPfv81E9hIMlHGsBEoUXQ0KTcV7k7xhY7Y9TTd3dsq2ugtFYQVRsxCrNfLDIvFOLJtZ-w-pwfyTM6529VMALAupwSweKuqv57vB3vuw4GZ-DY8aQZfcADyWC-Eyer4wpx7HaExRfZwNoPBn_Jbr52zjyGzv1LBGEUICQHXwiQNOF5ALd0pYnYYCQluxhHGiJDkaxeETFztdcZobso2Y0SYwROEn9IUkb8Uq0KhMPdpZCGnGRT3PQmgQBr550wcjSV3EQc.wbtCwuiIHRS-Jm5xGFS08Kxjiafa1cWj35_tqCJztr8&dib_tag=se&keywords=amazon&qid=1770627931&sr=8-3",
+            "product": {
+                "title": "Amazon Pay Gift Card - Birthday (Digital)",
+                "price": "1000",
+                "original_price": "500",
+                "discount": "()",
+                "bank_offers": [],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T09:05:42.189545"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/Amazon-mail-Pay-Gift-Card/dp/B00KGE2ER2/ref=sr_1_5?dib=eyJ2IjoiMSJ9.y82CTWzb7183hfzqMUcWO4o_qsqpXeJuYfYGsCoPfv81E9hIMlHGsBEoUXQ0KTcV7k7xhY7Y9TTd3dsq2ugtFYQVRsxCrNfLDIvFOLJtZ-w-pwfyTM6529VMALAupwSweKuqv57vB3vuw4GZ-DY8aQZfcADyWC-Eyer4wpx7HaExRfZwNoPBn_Jbr52zjyGzv1LBGEUICQHXwiQNOF5ALd0pYnYYCQluxhHGiJDkaxeETFztdcZobso2Y0SYwROEn9IUkb8Uq0KhMPdpZCGnGRT3PQmgQBr550wcjSV3EQc.wbtCwuiIHRS-Jm5xGFS08Kxjiafa1cWj35_tqCJztr8&dib_tag=se&keywords=amazon&qid=1770627931&sr=8-5",
+            "product": {
+                "title": "Amazon Pay Gift Card (Digital)",
+                "price": "1000",
+                "original_price": "500",
+                "discount": "()",
+                "bank_offers": [],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T09:05:42.189545"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/Amazon-Grey-mail-Gift-Card/dp/B018TV9HIM/ref=sr_1_1?dib=eyJ2IjoiMSJ9.y82CTWzb7183hfzqMUcWO4o_qsqpXeJuYfYGsCoPfv81E9hIMlHGsBEoUXQ0KTcV7k7xhY7Y9TTd3dsq2ugtFYQVRsxCrNfLDIvFOLJtZ-w-pwfyTM6529VMALAupwSweKuqv57vB3vuw4GZ-DY8aQZfcADyWC-Eyer4wpx7HaExRfZwNoPBn_Jbr52zjyGzv1LBGEUICQHXwiQNOF5ALd0pYnYYCQluxhHGiJDkaxeETFztdcZobso2Y0SYwROEn9IUkb8Uq0KhMPdpZCGnGRT3PQmgQBr550wcjSV3EQc.wbtCwuiIHRS-Jm5xGFS08Kxjiafa1cWj35_tqCJztr8&dib_tag=se&keywords=amazon&qid=1770627931&sr=8-1",
+            "product": {
+                "title": "Amazon Pay Gift Card (Digital)",
+                "price": "1000",
+                "original_price": "500",
+                "discount": "()",
+                "bank_offers": [],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T09:05:42.189545"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/Amazon-Pay-eGift-Card-Something/dp/B0C1LC51C9/ref=sr_1_4?dib=eyJ2IjoiMSJ9.y82CTWzb7183hfzqMUcWO4o_qsqpXeJuYfYGsCoPfv81E9hIMlHGsBEoUXQ0KTcV7k7xhY7Y9TTd3dsq2ugtFYQVRsxCrNfLDIvFOLJtZ-w-pwfyTM6529VMALAupwSweKuqv57vB3vuw4GZ-DY8aQZfcADyWC-Eyer4wpx7HaExRfZwNoPBn_Jbr52zjyGzv1LBGEUICQHXwiQNOF5ALd0pYnYYCQluxhHGiJDkaxeETFztdcZobso2Y0SYwROEn9IUkb8Uq0KhMPdpZCGnGRT3PQmgQBr550wcjSV3EQc.wbtCwuiIHRS-Jm5xGFS08Kxjiafa1cWj35_tqCJztr8&dib_tag=se&keywords=amazon&qid=1770627931&sr=8-4",
+            "product": {
+                "title": "Amazon Pay Gift Card - Thanks & Appreciation (Digital)",
+                "price": "1000",
+                "original_price": "500",
+                "discount": "()",
+                "bank_offers": [],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T09:05:42.189545"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/Amazon-Orange-mail-Gift-Card/dp/B018TV95KW/ref=sr_1_2?dib=eyJ2IjoiMSJ9.y82CTWzb7183hfzqMUcWO4o_qsqpXeJuYfYGsCoPfv81E9hIMlHGsBEoUXQ0KTcV7k7xhY7Y9TTd3dsq2ugtFYQVRsxCrNfLDIvFOLJtZ-w-pwfyTM6529VMALAupwSweKuqv57vB3vuw4GZ-DY8aQZfcADyWC-Eyer4wpx7HaExRfZwNoPBn_Jbr52zjyGzv1LBGEUICQHXwiQNOF5ALd0pYnYYCQluxhHGiJDkaxeETFztdcZobso2Y0SYwROEn9IUkb8Uq0KhMPdpZCGnGRT3PQmgQBr550wcjSV3EQc.wbtCwuiIHRS-Jm5xGFS08Kxjiafa1cWj35_tqCJztr8&dib_tag=se&keywords=amazon&qid=1770627931&sr=8-2",
+            "product": {
+                "title": "Amazon Pay Gift Card (Digital)",
+                "price": "1000",
+                "original_price": "500",
+                "discount": "()",
+                "bank_offers": [],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T09:05:42.189545"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/AmazonBasics-Adjustable-Dissipation-Lightweight-Compatible/dp/B0BTNT8X6K/ref=sr_1_9?dib=eyJ2IjoiMSJ9.y82CTWzb7183hfzqMUcWO4o_qsqpXeJuYfYGsCoPfv81E9hIMlHGsBEoUXQ0KTcV7k7xhY7Y9TTd3dsq2ugtFYQVRsxCrNfLDIvFOLJtZ-w-pwfyTM6529VMALAupwSweKuqv57vB3vuw4GZ-DY8aQZfcADyWC-Eyer4wpx7HaExRfZwNoPBn_Jbr52zjyGzv1LBGEUICQHXwiQNOF5ALd0pYnYYCQluxhHGiJDkaxeETFztdcZobso2Y0SYwROEn9IUkb8Uq0KhMPdpZCGnGRT3PQmgQBr550wcjSV3EQc.wbtCwuiIHRS-Jm5xGFS08Kxjiafa1cWj35_tqCJztr8&dib_tag=se&keywords=amazon&qid=1770627931&sr=8-9",
+            "product": {
+                "title": "Amazon Basics ABS 2-in-1 Laptop and Mobile Stand, Ergonomic, Adjustable Height, Anti-Slip Base, Heat Dissipation, Portable, Lightweight, Compatible with All Laptops Up to 15.6\" (Black)",
+                "price": "251",
+                "original_price": "1399",
+                "discount": "-82%",
+                "bank_offers": [
+                    "Upto \u20b91,000.00 discount on select Credit Cards, Debit Cards"
+                ],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T09:05:42.189545"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/Electric-Automatic-Operation-Overheat-Protection/dp/B0BT1M24FN/ref=sr_1_7?dib=eyJ2IjoiMSJ9.y82CTWzb7183hfzqMUcWO4o_qsqpXeJuYfYGsCoPfv81E9hIMlHGsBEoUXQ0KTcV7k7xhY7Y9TTd3dsq2ugtFYQVRsxCrNfLDIvFOLJtZ-w-pwfyTM6529VMALAupwSweKuqv57vB3vuw4GZ-DY8aQZfcADyWC-Eyer4wpx7HaExRfZwNoPBn_Jbr52zjyGzv1LBGEUICQHXwiQNOF5ALd0pYnYYCQluxhHGiJDkaxeETFztdcZobso2Y0SYwROEn9IUkb8Uq0KhMPdpZCGnGRT3PQmgQBr550wcjSV3EQc.wbtCwuiIHRS-Jm5xGFS08Kxjiafa1cWj35_tqCJztr8&dib_tag=se&keywords=amazon&qid=1770627931&sr=8-7",
+            "product": {
+                "title": "amazon basics Electric Egg Boiler | 350 Watt | Boils Upto 7 Eggs | Automatic Operation, 3 Boiling Modes | Overheat Protection | Stainless Steel Heating Plate, Measuring Cup | 75ml | Plastic | White",
+                "price": "389",
+                "original_price": "38900.00",
+                "discount": "-40%",
+                "bank_offers": [
+                    "Upto \u20b91,000.00 discount on select Credit Cards, Debit Cards"
+                ],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T09:05:42.189545"
+        },
+        {
+            "platform": "Amazon",
+            "country": "India",
+            "source_url": "https://www.amazon.in/Backpack-Resistant-Compartments-Breathable-Shoulder/dp/B0DZC5YH12/ref=sr_1_8?dib=eyJ2IjoiMSJ9.y82CTWzb7183hfzqMUcWO4o_qsqpXeJuYfYGsCoPfv81E9hIMlHGsBEoUXQ0KTcV7k7xhY7Y9TTd3dsq2ugtFYQVRsxCrNfLDIvFOLJtZ-w-pwfyTM6529VMALAupwSweKuqv57vB3vuw4GZ-DY8aQZfcADyWC-Eyer4wpx7HaExRfZwNoPBn_Jbr52zjyGzv1LBGEUICQHXwiQNOF5ALd0pYnYYCQluxhHGiJDkaxeETFztdcZobso2Y0SYwROEn9IUkb8Uq0KhMPdpZCGnGRT3PQmgQBr550wcjSV3EQc.wbtCwuiIHRS-Jm5xGFS08Kxjiafa1cWj35_tqCJztr8&dib_tag=se&keywords=amazon&qid=1770627931&sr=8-8",
+            "product": {
+                "title": "Amazon Basics Leather Laptop Backpack (15.6 Inch) | Water Resistant | Large Storage Compartments | Breathable Shoulder Straps | for Office, Travel or College (Black)",
+                "price": "820",
+                "original_price": "1999",
+                "discount": "-59%",
+                "bank_offers": [
+                    "Upto \u20b91,000.00 discount on select Credit Cards, Debit Cards"
+                ],
+                "availability": "In stock"
+            },
+            "scraped_at": "2026-02-09T09:05:42.189545"
+        }
+    ],
+    "scraped_at": "2026-02-09T09:05:42.189545"
+}
